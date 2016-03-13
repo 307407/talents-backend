@@ -409,10 +409,14 @@ class User(Entity):
 #+BEGIN_EXAMPLE
     User = User(name=<instance of class Name>,
                 email=<instance of class Email>,
+                password=str,
                 role=<instance of class Role>
-                [,last_active=str]
-                [,created=str]
-                [,institute_name=str])
+                [,mobile_number=int]
+                [,date_of_birth=str]
+                [,address=str]                
+                [,city=str]
+                [,country=str]
+                [,zip_code=int])
                                             
 #+END_EXAMPLE
 #+BEGIN_SRC python :tangle src/db.py :eval no
