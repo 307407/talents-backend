@@ -33,7 +33,7 @@ import config
 print "test package"
 #+END_SRC
 
-*** Imports for Python AP
+*** Imports for Python API
 #+BEGIN_SRC python :tangle src/db.py :eval no
 # -*- coding: utf-8 -*-
 
@@ -371,14 +371,18 @@ class TestRole(TestCase):
 *** User
 **** Immutable data
      + Id
-     + Created
 
 **** Mutable data
      + Name
      + Email
+     + Password
      + Role --> Id
-     + Last Active
-     + Intitue Name
+     + Mobile Number
+     + Date of Birth
+     + Address
+     + City
+     + Country
+     + Zip Code
 **** Definition
 #+BEGIN_SRC python :tangle src/db.py :eval no
 class User(Entity):
