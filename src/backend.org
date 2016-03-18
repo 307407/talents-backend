@@ -1772,13 +1772,7 @@ from src import config
 application = create_app(config)
 
 #+END_SRC
-
-** Model Diagram
-    The model-diagram can be found below. This gives an overview of the
-    relationships between different entities.
-
-    [[https://github.com/vlead/outreach-portal/blob/develop/src/diagrams/outreach-model-diagram.jpg][Model-diagram]] 
-
+   
 ** REST APIs to read and query data
    These are the set of REST APIs for read operations.
 
@@ -1788,62 +1782,8 @@ application = create_app(config)
    specifically, rather three generic API patterns are designed which,
    presumably, will capture all kinds of query patterns.
 
-   The three API patterns are:
-   1. =/<:entity>s?query_param1=val1&query_param2=val2&..query_paramn=valn=
-   2. =/<:entity>s/<:id>?fields=field1,field2,field3=
-
-   =<:entity>s= are defined in the corresponding look up table.
-
-   Let's explain each URL pattern:
-   1. The first URL pattern is to get record(s) of an entity which
-      satisfies some query parameters. Note, if one does not pass any
-      query parameter, it returns all records of that entity.  For
-      example:
-      1. To get all workshops that are completed and where labs_planned
-         are 5.
-        #+BEGIN_EXAMPLE
-	GET /workshops?status=completed&labs_planned=5
-	#+END_EXAMPLE
-      2. To get all roles in the system:
-         #+BEGIN_EXAMPLE
-	 GET /roles
-	 #+END_EXAMPLE
-      3. To get all the workshops where status is completed:
-         #+BEGIN_EXAMPLE
-	 GET /workshops?status=completed
-	 #+END_EXAMPLE
-   2. The second URL pattern is to get details of a particular record,
-      identified by a unique identifier =id=. The records can be
-      further filtered down with only desired attributes.  For example:
-      1. Get only few details of a particular workshop (where the workshop id
-         is known before):
-         #+BEGIN_EXAMPLE
-	 GET /workshops/2?fields=name, user, participants_attended, status
-	 #+END_EXAMPLE
-      2. Get all the details of particular user (presuming the id
-         is known beforehand):
-         #+BEGIN_EXAMPLE
-	 GET /users/2
-	 #+END_EXAMPLE
-
-   Note that, nesting of entities in the URL API is only allowed till
-   2nd level. Arbitrary nesting of entities might have the problem of
-   falling into infinite loop while querying.
-
-   Also note that, attributes with multiple values are
-   comma-separated; and the default action is to use AND operation
-   among them. If the OR operation is needed, they need to be
-   substituted by '+'. 
-
-   In the above, a valid =<:entity>s= can be any of the keywords
-   defined in the look up table. Like, =roles=, =users=,
-   =reference_documents=. Note that the entity name is always
-   plural, but the look up table maps the plural keyword to a
-   particular entity (which is usually in singular form).
-
-   Look up table would be like (this is an example, not the
-   implementation):
-#+BEGIN_SRC python
+   *NOTE*: Please refer to the API's section of this document. 
+   #+BEGIN_SRC python
   entity_map = {
       'roles': Role,
       'users': User,
@@ -1851,7 +1791,7 @@ application = create_app(config)
       'groups': Group
     }
 #+END_SRC
-
+   
 *** Implementation
 **** Attributes of an entity and their relationship
      All the attributes of an entity and the relationship between the entity
@@ -1957,93 +1897,6 @@ entity_pairs = {
      
 **** GET APIS
 #+BEGIN_SRC python :tangle src/api.py :eval no
-@api.route("/")
-def index():
-    return render_template("index.html")
-
-@api.route("/admin", methods=['GET','POST'])
-def admin():
-    if request.method == 'POST':
-        file = request.files['file']
-        name = request.form['name']
-        name_data = json.dumps({"name": name, "user": {"id":session['id']}})
-        r = requests.post(APP_URL+"/reference_documents",data=name_data)
-        r_json = json.loads(r.text)
-        ID = r_json['id']
-        filename = secure_filename(file.filename)
-        dir_path = "%s" % (UPLOAD_DIR_PATH)
-        file_path = "%s%s" % (dir_path, filename)  
-        file.save(os.getcwd()+"/build/code/src/"+file_path)
-        path = {'path': file_path}
-        print path
-        response = requests.put(APP_URL + "/reference_documents/"+ str(ID), data=path)
-        return redirect("/admin#documents")
-    else:
-        if ('email' in session) and (session['role'] == 'admin'):
-            rg = requests.get(APP_URL + "/reference_documents?user_id="+str(session['id']))
-            rg_json = json.loads(rg.text)
-            documents =  rg_json
-            return render_template("admin.html", documents=documents)
-        else:
-            return redirect("/")
-
-@api.route("/oc")
-def outreach_coordinator():
-
-    if ('email' in session) and (session['role'] == 'OC'):
-        return render_template("oc.html")
-    else:
-        return redirect("/")
-
-@api.route("/nc")
-def nodal_coordinator():
-
-    if ('email' in session) and (session['role'] == 'NC'):
-        return render_template("nc.html")
-    else:
-        return redirect("/")
-
-@api.route("/auth/login", methods=['GET', 'POST'])
-def login():
-    if request.method == 'POST':
-        if 'assertion' not in request.form:
-            abort(400)
-        data = {'assertion': request.form['assertion'],
-                'audience': APP_URL}
-        resp = requests.post(PERSONA_VERIFIER_URL,
-                             data=data, verify=True)
-        current_app.logger.debug("response from Persona = %s" %
-                                 resp.json())
-        if resp.ok:
-            verification_data = resp.json()
-        if verification_data['status'] == 'okay':
-            url_for_getting_the_user = "%s/users?email=%s" % \
-                                       (APP_URL, verification_data['email'])
-            current_app.logger.debug("url_for_getting_the_user = %s" %
-                                     url_for_getting_the_user)
-            backend_resp = requests.get(url_for_getting_the_user)
-            current_app.logger.debug("backend response = %s" %
-                                     backend_resp.text)
-            if (len(backend_resp.text.encode('ascii')) != 2):
-                session['email'] = verification_data['email']
-                role = backend_resp.json()[0]['role']['name'].encode('ascii')
-                name = backend_resp.json()[0]['name'].encode('ascii')
-                session['role'] = role
-                session['name'] = name
-                session['id'] = backend_resp.json()[0]['id']
-                if backend_resp.json()[0]['email'].encode('ascii') == \
-                   str(session['email']):
-                    return role
-            else:
-                return 'Invalid'
-
-@api.route('/auth/logout', methods=['POST'])
-def logout_handler():
-    session.pop('email', None)
-    session.pop('name', None)
-    session.pop('role', None)
-    return "Ok"
-
 
 def allowed_file(filename):
     return '.' in filename and \
@@ -2401,7 +2254,7 @@ def create_record(entity_name, entity):
 <<create-record>>
 <<create-entity>>
 #+END_SRC
-
+      
 ** Testing the REST API
 *** Tests for Role
 #+BEGIN_SRC python :tangle tests/test_api.py :eval no 
