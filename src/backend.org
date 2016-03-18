@@ -402,7 +402,7 @@ class User(Entity):
 
     role_id = db.Column(db.Integer, db.ForeignKey('roles.id'))
 
-
+    colleges = db.relationship('College', backref='user')
  #+END_SRC
 
 **** Constructor
@@ -849,7 +849,6 @@ class TestUser(TestCase):
         self.assertEqual("Mon Nov 23 2015 06:18:26 GMT-0500 (EST)", user.last_active)
 #+END_SRC
 
-
 ***** set Country: User, String --> Void
 #+BEGIN_SRC python :tangle src/db.py :eval no
     def set_country(self, country):
@@ -937,6 +936,244 @@ class TestUser(TestCase):
         self.assertEqual("madhavi@vlabs.ac.in", user_dict['email'])
         self.assertEqual("madhavi", user_dict['name'])
         self.assertEqual("Admin", user_dict['role']['name'])
+#+END_SRC
+
+*** College
+**** Immutable data
+     + Id
+     + Address
+     + Created by Id
+
+**** Mutable data
+     + College Name
+
+**** Definition
+#+BEGIN_SRC python :tangle src/db.py :eval no
+class College(Entity):
+
+    __tablename__ = 'colleges'
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(128), nullable=False)
+    address = db.Column(db.String(128))
+
+    created_by_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+
+#+END_SRC
+
+**** Constructor
+#+BEGIN_EXAMPLE
+    college = College(name=<instance of class Name>,
+                address=str,
+                created_by=<instance of class User>)
+                    
+#+END_EXAMPLE
+#+BEGIN_SRC python :tangle src/db.py :eval no
+    def __init__(self, **kwargs):
+        if 'name' not in kwargs:
+            raise AttributeRequired("mandatory attribute `name` is missing")
+        self.set_name(kwargs['name'])
+        if 'address' in kwargs:
+            self.set_address(kwargs['address'])
+        if 'created_by' not in kwargs:
+            raise AttributeRequired("mandatory attribute `created_by` is missing")
+        self.set_created_by(kwargs['created_by'])
+
+#+END_SRC
+**** Tests for Group Constructor
+#+BEGIN_SRC python :tangle tests/test_db.py :eval no
+class TestCollege(TestCase):
+    TESTING = True
+
+    def create_app(self):
+        app = create_app(config)
+        return app
+
+    def setUp(self):
+        db.create_all()
+
+    def tearDown(self):
+        db.session.remove()
+        db.drop_all()
+        
+#+END_SRC
+#+BEGIN_SRC python :tangle tests/test_db.py :eval no
+    def test_college_constructor(self):
+        print "test_college_constructor"
+        name = Name("Admin")
+        role = Role(name=name)
+        self.assertEqual(isinstance(role, Role), True)
+
+        # Calling the institute constructor without any arguments should
+        # raise AttributeRequired exception
+        self.assertRaises(AttributeRequired, Role)
+
+        # Calling the role constructor with necessary arguments
+        # (name) but with wrong type should raise TypeError
+        self.assertRaises(TypeError, Role,
+                          ,**{'name': "Admin"
+                            })
+
+#+END_SRC
+**** Functions that operate on the Role domain
+***** getCollege: Id --> College
+#+BEGIN_SRC python :tangle src/db.py :eval no
+    @staticmethod
+    def get_by_id(id):
+        return College.query.get(id)
+
+#+END_SRC
+***** Test getCollege: Id --> College
+#+BEGIN_SRC python :tangle tests/test_db.py :eval no
+    def test_get_college_by_id(self):
+        print "test_get_college_by_id"
+        role = Role(name=Name("Admin"))
+        role.save()
+        self.assertEqual(role.get_by_id(1).name, "Admin")
+
+#+END_SRC
+***** getAll: Nil --> set[College]
+#+BEGIN_SRC python :tangle src/db.py :eval no
+    @staticmethod
+    def get_all():
+        return College.query.all()
+#+END_SRC
+***** Test getAll: Nil --> set[College]
+#+BEGIN_SRC python :tangle tests/test_db.py :eval no
+    def test_group_get_all(self):
+        print "test_group_get_all"
+        role = Role(name=Name("Admin"))
+        role.save()
+        self.assertEqual("Admin", role.name)
+#+END_SRC
+***** getName: College --> Name
+#+BEGIN_SRC python :tangle src/db.py :eval no
+    def get_name(self):
+        return self.name
+#+END_SRC
+***** Test getName: College --> Name 
+#+BEGIN_SRC python :tangle tests/test_db.py :eval no
+    def test_get_college_name(self):
+        print "test_get_group_name"
+        role = Role(name=Name("Admin"))
+        role_name = role.get_name()
+        self.assertEqual(role_name, "Admin")
+#+END_SRC
+
+***** getAddress: str --> College
+#+BEGIN_SRC python :tangle src/db.py :eval no
+    def get_address(self):
+        return self.address
+
+#+END_SRC
+
+***** Test getAddress: str --> College
+#+BEGIN_SRC python :tangle tests/test_db.py :eval no
+    def test_get_group_college(self):
+        print "test_get_user_role"
+        role = Role(name=Name("Admin"))
+        user = User(name=Name("ambika"), email=Email("ambika@vlabs.ac.in"), role=role)
+        user_role = user.get_role()
+        self.assertEqual(user_role, role)
+#+END_SRC
+
+***** getCreatedBy: User --> CreatedBy
+#+BEGIN_SRC python :tangle src/db.py :eval no
+    def get_created_by(self):
+        return self.created_by
+
+#+END_SRC
+
+***** Test getCreatedBy: User --> CreatedBy
+#+BEGIN_SRC python :tangle tests/test_db.py :eval no
+    def test_get_group_created_by(self):
+        print "test_get_user_role"
+        role = Role(name=Name("Admin"))
+        user = User(name=Name("ambika"), email=Email("ambika@vlabs.ac.in"), role=role)
+        user_role = user.get_role()
+        self.assertEqual(user_role, role)
+#+END_SRC
+
+***** setName: Group, Name --> Void
+#+BEGIN_SRC python :tangle src/db.py :eval no
+    @typecheck(name=Name)
+    def set_name(self, name):
+        self.name = name.value
+#+END_SRC
+***** Test setName: Group, Name --> Void
+#+BEGIN_SRC python :tangle tests/test_db.py :eval no
+    def test_set_college_name(self):
+        print "test_set_role_name"
+        role = Role(name=Name("Admin"))
+        new_name = Name("OC")
+        role.set_name(new_name)
+        self.assertEqual(role.name, "OC")
+#+END_SRC
+
+***** setAddress: str, Address --> Void
+#+BEGIN_SRC python :tangle src/db.py :eval no
+    def set_address(self, address):
+        self.address = address
+
+#+END_SRC
+
+***** Test setAddress: str, Address --> Void
+#+BEGIN_SRC python :tangle tests/test_db.py :eval no
+    def test_set_group_college(self):
+        print "test_set_user_role"
+        role1 = Role(name=Name("Admin"))
+        role2 = Role(name=Name("OC"))
+        user = User(name=Name("ambika"), email=Email("ambika@vlabs.ac.in"), role=role1)
+        user.save()     
+        user.set_role(role2)
+        user.save()
+        user = User.get_by_id(1)
+        self.assertEqual(user.role, role2)
+#+END_SRC
+
+***** setCreatedBy: User, CreatedBy --> Void
+#+BEGIN_SRC python :tangle src/db.py :eval no
+    @typecheck(created_by=User)
+    def set_created_by(self, created_by):
+        self.created_by = created_by
+
+#+END_SRC
+
+***** Test setCreatedBy: User, CreatedBy --> Void
+#+BEGIN_SRC python :tangle tests/test_db.py :eval no
+    def test_set_user_role(self):
+        print "test_set_user_role"
+        role1 = Role(name=Name("Admin"))
+        role2 = Role(name=Name("OC"))
+        user = User(name=Name("ambika"), email=Email("ambika@vlabs.ac.in"), role=role1)
+        user.save()     
+        user.set_role(role2)
+        user.save()
+        user = User.get_by_id(1)
+        self.assertEqual(user.role, role2)
+#+END_SRC
+
+***** to_client
+#+BEGIN_SRC python :tangle src/db.py :eval no
+    def to_client(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'address': self.address,
+            'created_by': self.created_by.to_client()
+        }
+
+#+END_SRC
+
+***** Test Group to_client
+#+BEGIN_SRC python :tangle tests/test_db.py :eval no
+    def test_group_to_client(self):
+        print "test_role_to_client"
+        role = Role(name=Name("Admin"))
+        role.save()
+        role = Role.get_by_id(1)
+        role_dict = role.to_client()
+        self.assertEqual("Admin", role_dict['name'])
 #+END_SRC
 
 ** Custom Exceptions
@@ -1369,7 +1606,8 @@ application = create_app(config)
 #+BEGIN_SRC python
   entity_map = {
       'roles': Role,
-      'users': User
+      'users': User,
+      'colleges': College
     }
 #+END_SRC
 
@@ -1429,14 +1667,30 @@ user = {'entity_class': User,
              'class': Role,
              'relationship': 'many'}
         ]}
-
+college = {'entity_class': College,
+           'attributes': [
+            {'name': 'id',
+             'class': None,
+             'relationship': 'one'},
+            {'name': 'name',
+             'class': None,
+             'relationship': 'one'},
+            {'name': 'address',
+             'class': None,
+             'relationship': 'one'},
+            {'name': 'created_by',
+             'class': User,
+             'relationship': 'many'}
+            ]}
 
 roles = role
 users = user
+colleges = college
 
 entity_pairs = {
     'roles': role,
-    'users': user
+    'users': user,
+    'colleges':college
 }
                    
 #+END_SRC
@@ -1629,6 +1883,14 @@ entity_map_types = {
             'city': str,
             'country': str,
             'zip_code': int
+        }
+    },
+    'colleges': {
+        'entity': College,
+        'types': {
+            'name': Name,
+            'address': str,
+            'created_by': User,
         }
     }
 
