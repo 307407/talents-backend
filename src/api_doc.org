@@ -34,14 +34,17 @@ Following is the list of current REST APIs provided by outreach portal:
 #+BEGIN_SRC 
 - /roles [GET, POST]
 - /roles/<int:id> [GET, PUT, DELETE]
-- /roles/<int:id>?fields=field1,field2 [GET]
 - /roles?query_param1=val1&query_param2=val2&..query_paramn=valn [GET]
 - /users [GET, POST]
 - /users/<int:id> [GET, PUT, DELETE]
-- /users/<int:id>?fields=field1,field2 [GET]
 - /users?query_param1=val1&query_param2=val2&..query_paramn=valn [GET]
+- /colleges [GET, POST]
+- /colleges/<int:id> [GET, PUT, DELETE]
+- /colleges?query_param1=val1&query_param2=val2&..query_paramn=valn [GET]
+- /groups [GET, POST]
+- /groups/<int:id> [GET, PUT, DELETE]
+- /groups?query_param1=val1&query_param2=val2&..query_paramn=valn [GET]
 #+END_SRC
-
 *** /roles
 - Parameters
 |--------+---------------------------------------------------------|
@@ -130,31 +133,6 @@ Following is the list of current REST APIs provided by outreach portal:
   "status": "success"
 }
     #+END_SRC
-
-*** /roles/<int:id>?fields=field1,field2 
-
-- Parameters
-|--------+--------------------------------------------|
-| *Name* | *Description*                              |
-|--------+--------------------------------------------|
-| *name* | Returns the name of the role               |
-|--------+--------------------------------------------|
-| *id*   | Indicates a unique id assigned to the role |
-|--------+--------------------------------------------|
-
-- *GET* -
- + Example Request
-   #+BEGIN_SRC
-   /roles/1?fields=name,id
-   #+END_SRC
- 
- + Example Result
-   #+BEGIN_SRC
-{
-  "id": 1, 
-  "name": "Admin"
-}
-   #+END_SRC
 
 *** /roles?query_param1=val1&query_param2=val2&..query_paramn=valn
 - Parameters
@@ -348,60 +326,6 @@ Following is the list of current REST APIs provided by outreach portal:
   "status": "success"
 }
     #+END_SRC
-*** /users/<int:id>?fields=field1,field2
-- Parameters
-|-----------------+----------------------------------------------------------------------------------------------------|
-| *Name*          | *Description*                                                                                      |
-|-----------------+----------------------------------------------------------------------------------------------------|
-| *id*            | Indicates the unique id of the user. *Example Value:* 2                                            |
-|-----------------+----------------------------------------------------------------------------------------------------|
-| *name*          | Specifies the name of user. *Example Value:*  John                                                 |
-|-----------------+----------------------------------------------------------------------------------------------------|
-| *email*         | Specifies the email of user. *Example Value:*  John@gmail.com                                      |
-|-----------------+----------------------------------------------------------------------------------------------------|
-| *password*      | Specifies the password of user. *Example Value:* jhon123                                           |
-|-----------------+----------------------------------------------------------------------------------------------------|
-| *mobile_number* | Specifies the mobile number of user. *Example Value:* 9898989898                                   |
-|-----------------+----------------------------------------------------------------------------------------------------|
-| *role*          | Indicates the role of the user. *Example Value:*  Admin, HOD, Executive, Relationship Manager etc. |
-|-----------------+----------------------------------------------------------------------------------------------------|
-| *Date of Birth* | Specifies the date of birth of the user. *Example Value:* 06/02/1991                               |
-|-----------------+----------------------------------------------------------------------------------------------------|
-| *Address*       | Specifies the address of the user. *Example Value:* 1-3-176/D,street-9                             |
-|-----------------+----------------------------------------------------------------------------------------------------|
-| *City*          | Specifies the city of the user. *Example Value:* Hyderabad                                         |
-|-----------------+----------------------------------------------------------------------------------------------------|
-| *Country*       | Specifies the country of the user. *Example Value:* India                                          |
-|-----------------+----------------------------------------------------------------------------------------------------|
-| *ZipCode*       | Specifies the country of the user. *Example Value:* 500080                                         |
-|-----------------+----------------------------------------------------------------------------------------------------|
-
-
-- *GET* -
- + Example Request
-   #+BEGIN_SRC
-   /users/4?fields=name,email
-   #+END_SRC
- 
- + Example Result
-   #+BEGIN_SRC
-{
-  "address": "1-3-176/D", 
-  "city": "Hyderabad", 
-  "country": "India", 
-  "date_of_birth": "06/02/1991", 
-  "email": "madhavi@vlabs.ac.in", 
-  "id": 1, 
-  "mobile_number": 9866188505, 
-  "name": "madhavi", 
-  "role": {
-    "id": 1, 
-    "name": "Administrator"
-  }, 
-  "zip_code": 500080
-}
-   #+END_SRC
-
 *** /users?query_param1=val1&query_param2=val2&..query_paramn=valn
 - Parameters
 |-----------------+----------------------------------------------------------------------------------------------------|
@@ -443,3 +367,416 @@ Following is the list of current REST APIs provided by outreach portal:
 9866188505, "country": "India", "address": "1-3-176/D", "id": 1, "email":
 "madhavi@vlabs.ac.in"}]
    #+END_SRC
+*** /colleges
+- Parameters
+|--------------+-------------------------------------------------------------------------------------------|
+| *Name*       | *Description*                                                                             |
+|--------------+-------------------------------------------------------------------------------------------|
+| *id*         | Indicates the unique id of the College. *Example Value:* 2                                |
+|--------------+-------------------------------------------------------------------------------------------|
+| *name*       | Specifies the name of College. *Example Value:*  Bhoj Reddy Engineering college for women |
+|--------------+------------------------------------------------------------------------------------------ |
+| *Address*    | Specifies the address of College. *Example Value:*  Saidabad                              |
+|--------------+-------------------------------------------------------------------------------------------|
+| *Created By* | Indicates the id of the User. *Example Value:* {"id" : 1 }                                                                                            |
+|--------------+-------------------------------------------------------------------------------------------|
+
+- *GET* 
+ + Example Request
+  #+BEGIN_SRC
+  /colleges
+  #+END_SRC
+
+ + Example Result
+  #+BEGIN_SRC
+[{"address": "saidabad", "id": 1, "created_by": {"city": "Hyd", "zip_code":
+500080, "date_of_birth": "06/02/1991", "role": {"id": 1, "name":
+"Administrator"}, "name": "madhavi", "mobile_number": 9866188505, "country":
+"India", "address": "1-3-176/D", "id": 1, "email": "madhavi@vlabs.ac.in"},
+"name": "Bhoj Reddy Engineering College"}]
+  #+END_SRC
+
+- *POST* 
+ + Example Request
+  #+BEGIN_SRC
+ {"address": "saidabad", 
+"created_by": {"id": 1},
+"name": "Bhoj Reddy Engineering College"}
+  #+END_SRC
+
+ + Example Result
+
+  #+BEGIN_SRC
+{
+  "address": "saidabad", 
+  "created_by": {
+    "address": "1-3-176/D", 
+    "city": "Hyd", 
+    "country": "India", 
+    "date_of_birth": "06/02/1991", 
+    "email": "madhavi@vlabs.ac.in", 
+    "id": 1, 
+    "mobile_number": 9866188505, 
+    "name": "madhavi", 
+    "role": {
+      "id": 1, 
+      "name": "Administrator"
+    }, 
+    "zip_code": 500080
+  }, 
+  "id": 2, 
+  "name": "Bhoj Reddy Engineering College"
+}
+ #+END_SRC
+
+*** /colleges/<int:id>
+- Parameters
+
+|--------------+-------------------------------------------------------------------------------------------|
+| *Name*       | *Description*                                                                             |
+|--------------+-------------------------------------------------------------------------------------------|
+| *id*         | Indicates the unique id of the College. *Example Value:* 2                                |
+|--------------+-------------------------------------------------------------------------------------------|
+| *name*       | Specifies the name of College. *Example Value:*  Bhoj Reddy Engineering college for women |
+|--------------+------------------------------------------------------------------------------------------ |
+| *Address*    | Specifies the address of College. *Example Value:*  Saidabad                              |
+|--------------+-------------------------------------------------------------------------------------------|
+| *Created By* | Indicates the id of the User. *Example Value:* {"id" : 1 }                                                                                            |
+|--------------+-------------------------------------------------------------------------------------------|
+
+
+- *GET* - 
+ + Example Request
+  #+BEGIN_EXAMPLE
+   /colleges/1 
+   #+END_EXAMPLE
+
+ + Example Result
+  #+BEGIN_SRC
+{
+  "address": "saidabad", 
+  "created_by": {
+    "address": "1-3-176/D", 
+    "city": "Hyd", 
+    "country": "India", 
+    "date_of_birth": "06/02/1991", 
+    "email": "madhavi@vlabs.ac.in", 
+    "id": 1, 
+    "mobile_number": 9866188505, 
+    "name": "madhavi", 
+    "role": {
+      "id": 1, 
+      "name": "Administrator"
+    }, 
+    "zip_code": 500080
+  }, 
+  "id": 1, 
+  "name": "Bhoj Reddy Engineering College"
+}
+  #+END_SRC
+
+- *PUT*
+ + Example Request
+   #+BEGIN_SRC
+{"name":"Bhoj Reddy Engineering College for Women"}
+   #+END_SRC
+
+ + Example Result
+   #+BEGIN_SRC
+{
+  "address": "saidabad", 
+  "created_by": {
+    "address": "1-3-176/D", 
+    "city": "Hyd", 
+    "country": "India", 
+    "date_of_birth": "06/02/1991", 
+    "email": "madhavi@vlabs.ac.in", 
+    "id": 1, 
+    "mobile_number": 9866188505, 
+    "name": "madhavi", 
+    "role": {
+      "id": 1, 
+      "name": "Administrator"
+    }, 
+    "zip_code": 500080
+  }, 
+  "id": 1, 
+  "name": "Bhoj Reddy Engineering College for Women"
+}
+    #+END_SRC
+- *DELETE*
+ + Example Result
+   #+BEGIN_SRC
+{
+  "id": "2", 
+  "status": "success"
+}
+    #+END_SRC
+
+*** /colleges?query_param1=val1&query_param2=val2&..query_paramn=valn
+- Parameters
+|--------------+-------------------------------------------------------------------------------------------|
+| *Name*       | *Description*                                                                             |
+|--------------+-------------------------------------------------------------------------------------------|
+| *id*         | Indicates the unique id of the College. *Example Value:* 2                                |
+|--------------+-------------------------------------------------------------------------------------------|
+| *name*       | Specifies the name of College. *Example Value:*  Bhoj Reddy Engineering college for women |
+|--------------+------------------------------------------------------------------------------------------ |
+| *Address*    | Specifies the address of College. *Example Value:*  Saidabad                              |
+|--------------+-------------------------------------------------------------------------------------------|
+| *Created By* | Indicates the id of the User. *Example Value:* {"id" : 1 }                                                                                            |
+|--------------+-------------------------------------------------------------------------------------------|
+
+- *GET* -
+ + Example Request
+   #+BEGIN_SRC
+   /colleges?address=saidabad
+   #+END_SRC
+ 
+ + Example Result
+   #+BEGIN_SRC
+[{"address": "saidabad", "id": 1, "created_by": {"city": "Hyd", "zip_code":
+500080, "date_of_birth": "06/02/1991", "role": {"id": 1, "name":
+"Administrator"}, "name": "madhavi", "mobile_number": 9866188505, "country":
+"India", "address": "1-3-176/D", "id": 1, "email": "madhavi@vlabs.ac.in"},
+"name": "Bhoj Reddy Engineering College for Women"}]
+   #+END_SRC
+
+*** /groups
+- Parameters
+|--------------+----------------------------------------------------------------------------------|
+| *Name*       | *Description*                                                                    |
+|--------------+----------------------------------------------------------------------------------|
+| *id*         | Indicates the unique id of the Group. *Example Value:* 2                         |
+|--------------+----------------------------------------------------------------------------------|
+| *name*       | Specifies the name of Group. *Example Value:*  Malla Reddy Group of Institutions |
+|--------------+----------------------------------------------------------------------------------|
+| *College*    | Indicates the id of the College. *Example Value:* {"id" : 1 }                    |
+|--------------+----------------------------------------------------------------------------------|
+| *Created By* | Indicates the id of the User. *Example Value:* {"id" : 1 }                       |
+|--------------+----------------------------------------------------------------------------------|
+
+- *GET* 
+ + Example Request
+  #+BEGIN_SRC
+  /groups
+  #+END_SRC
+
+ + Example Result
+  #+BEGIN_SRC
+[{"college": {"address": "saidabad", "id": 1, "created_by": {"city": "Hyd",
+"zip_code": 500080, "date_of_birth": "06/02/1991", "role": {"id": 1, "name":
+"Administrator"}, "name": "madhavi", "mobile_number": 9866188505, "country":
+"India", "address": "1-3-176/D", "id": 1, "email": "madhavi@vlabs.ac.in"},
+"name": "Bhoj Reddy Engineering College for Women"}, "id": 1, "created_by":
+{"city": "Hyd", "zip_code": 500080, "date_of_birth": "06/02/1991", "role":
+{"id": 1, "name": "Administrator"}, "name": "madhavi", "mobile_number":
+9866188505, "country": "India", "address": "1-3-176/D", "id": 1, "email":
+"madhavi@vlabs.ac.in"}, "name": "Malla Reddy"}]
+  #+END_SRC
+
+- *POST* 
+ + Example Request
+  #+BEGIN_SRC
+{"name":"Malla Reddy",
+"college":{"id":1},
+"created_by":{"id":1}}
+  #+END_SRC
+
+ + Example Result
+
+  #+BEGIN_SRC
+{
+  "college": {
+    "address": "saidabad", 
+    "created_by": {
+      "address": "1-3-176/D", 
+      "city": "Hyd", 
+      "country": "India", 
+      "date_of_birth": "06/02/1991", 
+      "email": "madhavi@vlabs.ac.in", 
+      "id": 1, 
+      "mobile_number": 9866188505, 
+      "name": "madhavi", 
+      "role": {
+        "id": 1, 
+        "name": "Administrator"
+      }, 
+      "zip_code": 500080
+    }, 
+    "id": 1, 
+    "name": "Bhoj Reddy Engineering College for Women"
+  }, 
+  "created_by": {
+    "address": "1-3-176/D", 
+    "city": "Hyd", 
+    "country": "India", 
+    "date_of_birth": "06/02/1991", 
+    "email": "madhavi@vlabs.ac.in", 
+    "id": 1, 
+    "mobile_number": 9866188505, 
+    "name": "madhavi", 
+    "role": {
+      "id": 1, 
+      "name": "Administrator"
+    }, 
+    "zip_code": 500080
+  }, 
+  "id": 1, 
+  "name": "Malla Reddy"
+}
+ #+END_SRC
+
+*** /groups/<int:id>
+- Parameters
+|--------------+----------------------------------------------------------------------------------|
+| *Name*       | *Description*                                                                    |
+|--------------+----------------------------------------------------------------------------------|
+| *id*         | Indicates the unique id of the Group. *Example Value:* 2                         |
+|--------------+----------------------------------------------------------------------------------|
+| *name*       | Specifies the name of Group. *Example Value:*  Malla Reddy Group of Institutions |
+|--------------+----------------------------------------------------------------------------------|
+| *College*    | Indicates the id of the College. *Example Value:* {"id" : 1 }                    |
+|--------------+----------------------------------------------------------------------------------|
+| *Created By* | Indicates the id of the User. *Example Value:* {"id" : 1 }                       |
+|--------------+----------------------------------------------------------------------------------|
+
+- *GET* - 
+ + Example Request
+  #+BEGIN_EXAMPLE
+   /groups/1 
+   #+END_EXAMPLE
+
+ + Example Result
+  #+BEGIN_SRC
+{
+  "college": {
+    "address": "saidabad", 
+    "created_by": {
+      "address": "1-3-176/D", 
+      "city": "Hyd", 
+      "country": "India", 
+      "date_of_birth": "06/02/1991", 
+      "email": "madhavi@vlabs.ac.in", 
+      "id": 1, 
+      "mobile_number": 9866188505, 
+      "name": "madhavi", 
+      "role": {
+        "id": 1, 
+        "name": "Administrator"
+      }, 
+      "zip_code": 500080
+    }, 
+    "id": 1, 
+    "name": "Bhoj Reddy Engineering College for Women"
+  }, 
+  "created_by": {
+    "address": "1-3-176/D", 
+    "city": "Hyd", 
+    "country": "India", 
+    "date_of_birth": "06/02/1991", 
+    "email": "madhavi@vlabs.ac.in", 
+    "id": 1, 
+    "mobile_number": 9866188505, 
+    "name": "madhavi", 
+    "role": {
+      "id": 1, 
+      "name": "Administrator"
+    }, 
+    "zip_code": 500080
+  }, 
+  "id": 1, 
+  "name": "Malla Reddy"
+}
+  #+END_SRC
+
+- *PUT*
+ + Example Request
+   #+BEGIN_SRC
+{"name":"Malla Reddy Group of institutions"}
+   #+END_SRC
+
+ + Example Result
+   #+BEGIN_SRC
+{
+  "college": {
+    "address": "saidabad", 
+    "created_by": {
+      "address": "1-3-176/D", 
+      "city": "Hyd", 
+      "country": "India", 
+      "date_of_birth": "06/02/1991", 
+      "email": "madhavi@vlabs.ac.in", 
+      "id": 1, 
+      "mobile_number": 9866188505, 
+      "name": "madhavi", 
+      "role": {
+        "id": 1, 
+        "name": "Administrator"
+      }, 
+      "zip_code": 500080
+    }, 
+    "id": 1, 
+    "name": "Bhoj Reddy Engineering College for Women"
+  }, 
+  "created_by": {
+    "address": "1-3-176/D", 
+    "city": "Hyd", 
+    "country": "India", 
+    "date_of_birth": "06/02/1991", 
+    "email": "madhavi@vlabs.ac.in", 
+    "id": 1, 
+    "mobile_number": 9866188505, 
+    "name": "madhavi", 
+    "role": {
+      "id": 1, 
+      "name": "Administrator"
+    }, 
+    "zip_code": 500080
+  }, 
+  "id": 1, 
+  "name": "Malla Reddy Group of institutions"
+}
+    #+END_SRC
+- *DELETE*
+ + Example Result
+   #+BEGIN_SRC
+{
+  "id": "1", 
+  "status": "success"
+}
+    #+END_SRC
+
+*** /groups?query_param1=val1&query_param2=val2&..query_paramn=valn
+- Parameters
+|--------------+----------------------------------------------------------------------------------|
+| *Name*       | *Description*                                                                    |
+|--------------+----------------------------------------------------------------------------------|
+| *id*         | Indicates the unique id of the Group. *Example Value:* 2                         |
+|--------------+----------------------------------------------------------------------------------|
+| *name*       | Specifies the name of Group. *Example Value:*  Malla Reddy Group of Institutions |
+|--------------+----------------------------------------------------------------------------------|
+| *College*    | Indicates the id of the College. *Example Value:* {"id" : 1 }                    |
+|--------------+----------------------------------------------------------------------------------|
+| *Created By* | Indicates the id of the User. *Example Value:* {"id" : 1 }                       |
+|--------------+----------------------------------------------------------------------------------|
+
+- *GET* -
+ + Example Request
+   #+BEGIN_SRC
+   /groups?name=Malla Reddy
+   #+END_SRC
+ 
+ + Example Result
+   #+BEGIN_SRC
+[{"college": {"address": "saidabad", "id": 1, "created_by": {"city": "Hyd",
+"zip_code": 500080, "date_of_birth": "06/02/1991", "role": {"id": 1, "name":
+"Administrator"}, "name": "madhavi", "mobile_number": 9866188505, "country":
+"India", "address": "1-3-176/D", "id": 1, "email": "madhavi@vlabs.ac.in"},
+"name": "Bhoj Reddy Engineering College for Women"}, "id": 2, "created_by":
+{"city": "Hyd", "zip_code": 500080, "date_of_birth": "06/02/1991", "role":
+{"id": 1, "name": "Administrator"}, "name": "madhavi", "mobile_number":
+9866188505, "country": "India", "address": "1-3-176/D", "id": 1, "email":
+"madhavi@vlabs.ac.in"}, "name": "Malla Reddy"}]
+   #+END_SRC
+
