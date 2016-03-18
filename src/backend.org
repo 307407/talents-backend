@@ -13,10 +13,10 @@
   This release (v1.0), fulfills the following requirements:
 
   1. Python API that acts as a wrapper to make CRUD operations on the
-     entities -.
+     entities - Roles, Users, Colleges, Groups.
 
   2. REST API for various applications to perform CRUD operations on the
-     entities - .
+     entities - Roles, Users, Colleges, Groups.
   
 * Design and Implementation
 ** Some initialization and boilerplate code
