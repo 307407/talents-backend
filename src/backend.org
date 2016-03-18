@@ -958,7 +958,7 @@ class College(Entity):
     address = db.Column(db.String(128))
 
     created_by_id = db.Column(db.Integer, db.ForeignKey('users.id'))
-
+    created_by = relationship('User', foreign_keys=[created_by_id])
 #+END_SRC
 
 **** Constructor
