@@ -1979,7 +1979,7 @@ entity_pairs = {
      
 **** GET APIS
 #+BEGIN_SRC python :tangle src/api.py :eval no
-@api.route("/")
+@api.route("/send_email")
 def index():
    msg = Message('Hello', sender = 'madhavipuliraju@gmail.com', recipients = ['madhavi@vlabs.ac.in', 'sripathi@vlabs.ac.in', 'kammari.sripathi@gmail.com'])
    msg.body = "Hello sripathi from Flask-Mail"
