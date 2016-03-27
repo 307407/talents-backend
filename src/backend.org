@@ -1493,7 +1493,7 @@ class TestGroup(TestCase):
         role_dict = role.to_client()
         self.assertEqual("Admin", role_dict['name'])
 #+END_SRC
-*** User Files
+*** User Documents
 **** Immutable data
      + Id
   
