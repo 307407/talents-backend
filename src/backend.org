@@ -405,7 +405,7 @@ class User(Entity):
     role_id = db.Column(db.Integer, db.ForeignKey('roles.id'))
 
     colleges = db.relationship('College', backref='user')
-    user_reports = db.relationship('UserReport', backref='user')
+    user_documents = db.relationship('UserDocument', backref='user')
  #+END_SRC
 
 **** Constructor
@@ -1493,7 +1493,7 @@ class TestGroup(TestCase):
         role_dict = role.to_client()
         self.assertEqual("Admin", role_dict['name'])
 #+END_SRC
-*** User Reports
+*** User Files
 **** Immutable data
      + Id
   
@@ -1503,9 +1503,9 @@ class TestGroup(TestCase):
 
 **** Definition
 #+BEGIN_SRC python :tangle src/db.py :eval no
-class UserReport(Entity):
+class UserDocument(Entity):
 
-    __tablename__ = 'user_reports'
+    __tablename__ = 'user_documents'
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(128), nullable=False)
@@ -1516,7 +1516,7 @@ class UserReport(Entity):
 
 **** Constructor
 #+BEGIN_EXAMPLE 
-    user_report = UserReport(name=str, path=str,  user=<instance of class User>)
+    user_document = Userfile(name=str, path=str,  user=<instance of class User>)
                                             
 #+END_EXAMPLE
 #+BEGIN_SRC python :tangle src/db.py :eval no 
@@ -1543,9 +1543,9 @@ class UserReport(Entity):
 
 #+END_SRC
 
-**** Tests for User Report Constructor
+**** Tests for User Document Constructor
 #+BEGIN_SRC python :tangle tests/test_db.py :eval no 
-class TestUserReport(TestCase):
+class TestUserDocument(TestCase):
     TESTING = True
 
     def create_app(self):
@@ -1561,8 +1561,8 @@ class TestUserReport(TestCase):
         
 #+END_SRC
 #+BEGIN_SRC python :tangle tests/test_db.py :eval no
-    def test_user_report_constructor(self):
-        print "test_user_report_constructor"
+    def test_user_document_constructor(self):
+        print "test_user_document_constructor"
 
         role = Role(name=Name("Student"))
         role.save()
@@ -1572,35 +1572,35 @@ class TestUserReport(TestCase):
                     address=("1-3-176/D"), city=("Hyd"), country=("India"), zip_code=("500080"), role = role)
         user.save()
 
-        user_report = UserReport(name="Student Photo", user=user)
-        user_report.save()
+        user_document = UserDocument(name="Student Photo", user=user)
+        user_document.save()
         
-        # Calling the user_report constructor without any arguments should
+        # Calling the user_document constructor without any arguments should
         # raise AttributeRequired exception
-        self.assertRaises(AttributeRequired, UserReport)
+        self.assertRaises(AttributeRequired, UserDocument)
 
-        # Calling the user_report constructor with necessary arguments
+        # Calling the user_document constructor with necessary arguments
         # (user,path) but with wrong type should raise TypeError
-        self.assertRaises(TypeError, UserReport,
+        self.assertRaises(TypeError, UserDocument,
                           ,**{'path': 12,
                               'name':"College Report",
                               'user': user
                             })
 
 #+END_SRC
-**** Functions that operate on the User Report domain
-***** getAll: Nil --> set[UserReport]
+**** Functions that operate on the User Document domain
+***** getAll: Nil --> set[UserDocument]
 #+BEGIN_SRC python :tangle src/db.py :eval no
     @staticmethod
     def get_all():
-        return UserReport.query.all()
+        return UserDocument.query.all()
 
 #+END_SRC
 
-***** Test getAll: Nil --> set[UserReport]
+***** Test getAll: Nil --> set[UserDocument]
 #+BEGIN_SRC python :tangle tests/test_db.py :eval no
-    def test_user_reports_get_all(self):
-        print "test_user_reports_get_all"
+    def test_user_documents_get_all(self):
+        print "test_user_documents_get_all"
 
         name = Name("Student")
         role = Role(name=name)
@@ -1612,35 +1612,35 @@ class TestUserReport(TestCase):
         user.save()
          
         
-        student_report1 = UserReport(name="College Report", path="/static/uploads/college-reports/file.pdf",
+        student_report1 = UserDocument(name="College Report", path="/static/uploads/college-files/file.pdf",
                              user=user)
-        user_report1.save()
+        user_document1.save()
 
-        user_report2 = UserReport(name="User Photos", path="/static/uploads/college-reports/photos.png",
+        user_document2 = UserDocument(name="User Photos", path="/static/uploads/college-files/photos.png",
                              user=user)
-        user_report2.save()
+        user_document2.save()
 
-        user_report_list = UserReport.get_all()
+        user_document_list = UserDocument.get_all()
         
-        self.assertEqual("College Report", user_report_list[0].name)
-        self.assertEqual("User Photos", user_report_list[1].name)
+        self.assertEqual("College Report", user_document_list[0].name)
+        self.assertEqual("User Photos", user_document_list[1].name)
 
-        self.assertEqual("/static/uploads/college-reports/file.pdf", user_report_list[0].path)
-        self.assertEqual("/static/uploads/college-reports/photos.png", user_report_list[1].path)
+        self.assertEqual("/static/uploads/college-files/file.pdf", user_document_list[0].path)
+        self.assertEqual("/static/uploads/college-files/photos.png", user_document_list[1].path)
 
 #+END_SRC
 
-***** getUserReport: Id --> UserReport
+***** getUserDocument: Id --> UserDocument
 #+BEGIN_SRC python :tangle src/db.py :eval no 
     @staticmethod
     def get_by_id(id):
-        return UserReport.query.get(id)
+        return UserDocument.query.get(id)
 
 #+END_SRC
 
-***** Test getUserReport: Id --> UserReport
+***** Test getUserDocument: Id --> UserDocument
 #+BEGIN_SRC python :tangle tests/test_db.py :eval no 
-    def test_get_user_report_by_id(self):
+    def test_get_user_document_by_id(self):
         print "test_get_document_by_id"
 
         name = Name("Student")
@@ -1652,24 +1652,24 @@ class TestUserReport(TestCase):
                     address=("1-3-176/D"), city=("Hyd"), country=("India"), zip_code=("500080"), role = role)
         user.save()
         
-        user_report = UserReport(name="College Report", path="/static/uploads/college-reports/file.pdf", user=user)
-        user_report.save()
+        user_document = UserDocument(name="College Report", path="/static/uploads/college-files/file.pdf", user=user)
+        user_document.save()
 
-        self.assertEqual(user_report.get_by_id(1).path, "/static/uploads/college-reports/file.pdf" )
-        self.assertEqual(user_report.get_by_id(1).name, "College Report" )
+        self.assertEqual(user_document.get_by_id(1).path, "/static/uploads/college-files/file.pdf" )
+        self.assertEqual(user_document.get_by_id(1).name, "College Report" )
 
 #+END_SRC
      
-***** getPath: UserReport --> String
+***** getPath: UserDocument --> String
 #+BEGIN_SRC python :tangle src/db.py :eval no
     def get_path(self):
         return self.path
 #+END_SRC
 
-***** Test getPath: UserReport --> String
+***** Test getPath: UserDocument --> String
 #+BEGIN_SRC python :tangle tests/test_db.py :eval no
-    def test_get_user_report_path(self):
-        print "test_get_user_report_path"
+    def test_get_user_document_path(self):
+        print "test_get_user_document_path"
         name = Name("Student")
         role = Role(name=name)
         role.save()
@@ -1679,24 +1679,24 @@ class TestUserReport(TestCase):
                     address=("1-3-176/D"), city=("Hyd"), country=("India"), zip_code=("500080"), role = role)
         user.save()
 
-        user_report = UserReport(name="College Report", path="/static/uploads/college-reports/file.pdf", user=user)
-        user_report.save()
+        user_document = UserDocument(name="College Report", path="/static/uploads/college-files/file.pdf", user=user)
+        user_document.save()
 
-        user_report_path = user_report.get_path()
-        self.assertEqual(user_report_path, "/static/uploads/college-reports/file.pdf")
+        user_document_path = user_document.get_path()
+        self.assertEqual(user_document_path, "/static/uploads/college-files/file.pdf")
 
 #+END_SRC
      
-***** getName: UserReport --> String
+***** getName: UserDocument --> String
 #+BEGIN_SRC python :tangle src/db.py :eval no
     def get_name(self):
         return self.name
 #+END_SRC
 
-***** Test getName: UserReport --> String
+***** Test getName: UserDocument --> String
 #+BEGIN_SRC python :tangle tests/test_db.py :eval no 
-    def test_get_user_report_name(self):
-        print "test_get_user_report_name"
+    def test_get_user_document_name(self):
+        print "test_get_user_document_name"
 
         name = Name("Student")
         role = Role(name=name)
@@ -1707,23 +1707,23 @@ class TestUserReport(TestCase):
                     address=("1-3-176/D"), city=("Hyd"), country=("India"), zip_code=("500080"), role = role)
         user.save()
         
-        user_report = UserReport(name="College Report", path="/static/uploads/college-reports/file.pdf", user=user)
-        user_report.save()
+        user_document = UserDocument(name="College Report", path="/static/uploads/college-files/file.pdf", user=user)
+        user_document.save()
 
-        user_report_name = user_report.get_name()
-        self.assertEqual(user_report_name, "College Report")
+        user_document_name = user_document.get_name()
+        self.assertEqual(user_document_name, "College Report")
 
 #+END_SRC
      
-***** getUser: UserReport --> User
+***** getUser: UserDocument --> User
 #+BEGIN_SRC python :tangle src/db.py :eval no 
     def get_user(self):
         return self.user
 #+END_SRC
-***** TestUser: UserReport --> User
+***** TestUser: UserDocument --> User
 #+BEGIN_SRC python :tangle tests/test_db.py :eval no 
-    def test_get_user_report_user(self):
-        print "test_get_user_report_user"
+    def test_get_user_document_user(self):
+        print "test_get_user_document_user"
 
         name = Name("Student")
         role = Role(name=name)
@@ -1734,24 +1734,24 @@ class TestUserReport(TestCase):
                     address=("1-3-176/D"), city=("Hyd"), country=("India"), zip_code=("500080"), role = role)
         user.save()
 
-        user_report = UserReport(name="College Report", path="/static/uploads/college-reports/file.pdf", user=user)
-        user_report.save()
+        user_document = UserDocument(name="College Report", path="/static/uploads/college-files/file.pdf", user=user)
+        user_document.save()
 
-        user = user_report.get_user()
+        user = user_document.get_user()
         self.assertEqual("Coordinators Training", user.name )
 
 #+END_SRC
-***** setPath: UserReport, String --> Void
+***** setPath: UserDocument, String --> Void
 #+BEGIN_SRC python :tangle src/db.py :eval no 
     @typecheck(path=str)
     def set_path(self, path):
         self.path = path
 #+END_SRC
 
-***** Test setPath: UserReport, String --> Void
+***** Test setPath: UserDocument, String --> Void
 #+BEGIN_SRC python :tangle tests/test_db.py :eval no 
-    def test_set_user_report_path(self):
-        print "test_set_user_report_path"
+    def test_set_user_document_path(self):
+        print "test_set_user_document_path"
 
         name = Name("Student")
         role = Role(name=name)
@@ -1762,27 +1762,27 @@ class TestUserReport(TestCase):
                     address=("1-3-176/D"), city=("Hyd"), country=("India"), zip_code=("500080"), role = role)
         user.save()
         
-        user_report = UserReport(name="College Report", path="/static/uploads/college-reports/file.pdf", user=user)
-        user_report.save()
+        user_document = UserDocument(name="College Report", path="/static/uploads/college-files/file.pdf", user=user)
+        user_document.save()
 
-        user_report.set_path("/static/uploads/college-reports/file.doc")
-        user_report.save()
+        user_document.set_path("/static/uploads/college-files/file.doc")
+        user_document.save()
 
-        doc = user_report.get_by_id(1)
-        self.assertEqual(doc.path, "/static/uploads/college-reports/file.doc")
+        doc = user_document.get_by_id(1)
+        self.assertEqual(doc.path, "/static/uploads/college-files/file.doc")
 #+END_SRC
       
-***** setName: UserReport, String --> Void
+***** setName: UserDocument, String --> Void
 #+BEGIN_SRC python :tangle src/db.py :eval no 
     @typecheck(name=str)
     def set_name(self, name):
         self.name = name
 #+END_SRC
 
-***** Test setName: UserReport, String --> Void
+***** Test setName: UserDocument, String --> Void
 #+BEGIN_SRC python :tangle tests/test_db.py :eval no 
-    def test_set_user_report_name(self):
-        print "test_set_user_report_name"
+    def test_set_user_document_name(self):
+        print "test_set_user_document_name"
         name = Name("Student")
         role = Role(name=name)
         role.save()
@@ -1792,17 +1792,17 @@ class TestUserReport(TestCase):
                     address=("1-3-176/D"), city=("Hyd"), country=("India"), zip_code=("500080"), role = role)
         user.save()
 
-        user_report = UserReport(name="College Report", path="/static/uploads/college-reports/file.pdf", user=user)
-        user_report.save()
+        user_document = UserDocument(name="College Report", path="/static/uploads/college-files/file.pdf", user=user)
+        user_document.save()
 
-        user_report.set_name("User Photos")
-        user_report.save()
+        user_document.set_name("User Photos")
+        user_document.save()
 
-        doc = user_report.get_by_id(1)
+        doc = user_document.get_by_id(1)
         self.assertEqual(doc.name, "User Photos")
 #+END_SRC
       
-***** setUser: UserReport, User --> Void
+***** setUser: UserDocument, User --> Void
 #+BEGIN_SRC python :tangle src/db.py :eval no
     @typecheck(user=User)
     def set_user(self, user):
@@ -1810,10 +1810,10 @@ class TestUserReport(TestCase):
 
 #+END_SRC
 
-***** Test setUser: UserReport, User --> Void
+***** Test setUser: UserDocument, User --> Void
 #+BEGIN_SRC python :tangle tests/test_db.py :eval no
-    def test_set_user_report_user(self):
-        print "test_set_user_report_user"
+    def test_set_user_document_user(self):
+        print "test_set_user_document_user"
         role = Role(name=Name("Student"))
 
         user1 = User(name=Name("madhavi"), email=Email("madhavi@vlabs.ac.in"),
@@ -1826,12 +1826,12 @@ class TestUserReport(TestCase):
         user2.save()
 
 
-        user_report = UserReport(name= "College Report", path="/static/uploads/college-reports/file.pdf", user=user1)
-        user_report.save()
+        user_document = UserDocument(name= "College Report", path="/static/uploads/college-files/file.pdf", user=user1)
+        user_document.save()
      
-        user_report.set_user(user2)
-        user_report.save()
-        self.assertEqual(user_report.user.name, "madhavi")
+        user_document.set_user(user2)
+        user_document.save()
+        self.assertEqual(user_document.user.name, "madhavi")
 #+END_SRC
 ***** to_client
 #+BEGIN_SRC python :tangle src/db.py :eval no 
@@ -1844,23 +1844,23 @@ class TestUserReport(TestCase):
         }
 #+END_SRC
       
-***** Test UserReport to_client
+***** Test UserDocument to_client
 #+BEGIN_SRC python :tangle tests/test_db.py :eval no 
-    def test_user_report_to_client(self):
-        print "test_user_report_to_client"
+    def test_user_document_to_client(self):
+        print "test_user_document_to_client"
 
         name = Name("Student")
         role = Role(name=name)
         role.save()
          
-        user_report = UserReport(name= "College Report", path="/static/uploads/college-reports/file.pdf", user=user1)
-        user_report.save()
+        user_document = UserDocument(name= "College Report", path="/static/uploads/college-files/file.pdf", user=user1)
+        user_document.save()
 
-        doc = user_report.get_by_id(1)
+        doc = user_document.get_by_id(1)
         doc_dict = doc.to_client()
 
-        self.assertEqual("/static/uploads/college-reports/file.pdf", doc_dict['path'])
-        self.assertEqual("College Reports", doc_dict['name'])
+        self.assertEqual("/static/uploads/college-files/file.pdf", doc_dict['path'])
+        self.assertEqual("College Files", doc_dict['name'])
 
 #+END_SRC
 
@@ -2243,7 +2243,7 @@ application = create_app(config)
       'users': User,
       'colleges': College,
       'groups': Group,
-      'user_reports':UserReport
+      'user_documents':UserDocument
     }
 #+END_SRC
    
@@ -2335,7 +2335,7 @@ group = {'entity_class': Group,
 
             ]}
 
-user_report = {'entity_class': UserReport,
+user_document = {'entity_class': UserDocument,
                   'attributes': [
                       {'name': 'id',
                        'class': None,
@@ -2354,14 +2354,14 @@ roles = role
 users = user
 colleges = college
 groups = group
-user_reports=user_report
+user_documents=user_document
 
 entity_pairs = {
     'roles': role,
     'users': user,
     'colleges':college,
     'groups': group,
-    'user_reports':user_report
+    'user_documents':user_document
 }
                    
 #+END_SRC
@@ -2378,8 +2378,8 @@ def index():
    mail.send(msg)
    return "Sent"
 
-@api.route('/upload_user_files/<id>', methods=['GET', 'POST'])
-def save_user_files(id):
+@api.route('/upload_user_documents/<id>', methods=['GET', 'POST'])
+def save_user_documents(id):
     if request.method == 'GET':
         return '''
         <!doctype html>
@@ -2391,7 +2391,7 @@ def save_user_files(id):
         </form>
         '''
     if request.method == 'POST':
-        url = APP_URL + "/upload_user_files/"\
+        url = APP_URL + "/upload_user_documents/"\
               + id
         response = requests.get(url)
 
@@ -2533,8 +2533,8 @@ entity_map_types = {
             'created_by': User,
         }
     },
-    'user_reports': {
-        'entity': UserReport,
+    'user_documents': {
+        'entity': UserDocument,
         'types': {
             'name':str,
             'path': str,
@@ -2949,9 +2949,9 @@ class TestUser(TestCase):
 
 #+END_SRC
     
-*** Tests for User Report
+*** Tests for User Document
 #+BEGIN_SRC python :tangle tests/test_api.py :eval no 
-class TestUserReport(TestCase):
+class TestUserDocument(TestCase):
 
     TESTING = True
 
@@ -2966,8 +2966,8 @@ class TestUserReport(TestCase):
         db.session.remove()
         db.drop_all()
 
-    def test_get_all_user_reports(self):
-        print "test_get_all_user_reports"
+    def test_get_all_user_documents(self):
+        print "test_get_all_user_documents"
 
         role = Role(name=Name("Student"))
         role.save()
@@ -2978,23 +2978,23 @@ class TestUserReport(TestCase):
         user.save()
 
 
-        user_report1 = UserReport(name="College Report",
-                                          path="/static/uploads/college-reports/file.pdf",
+        user_document1 = UserDocument(name="College Report",
+                                          path="/static/uploads/college-files/file.pdf",
                                           user=user_1)
-        user_report1.save()
+        user_document1.save()
 
-        user_report2 = UserReport(name="College Report",
-                                          path="/static/uploads/college-reports/file.pdf",
+        user_document2 = UserDocument(name="College Report",
+                                          path="/static/uploads/college-files/file.pdf",
                                           user=user_2)
-        user_report2.save()
+        user_document2.save()
 
 
-        r = self.client.get('/user_reports')
+        r = self.client.get('/user_documents')
         result = json.loads(r.data)
         self.assertEquals(len(result), 2)
 
-    def test_get_one_user_report(self):
-        print "test_get_one_user_report"
+    def test_get_one_user_document(self):
+        print "test_get_one_user_document"
 
         role = Role(name=Name("Student"))
         role.save()
@@ -3005,19 +3005,19 @@ class TestUserReport(TestCase):
         user.save()
 
 
-        user_report1 = UserReport(name="College Report",
-                                          path="/static/uploads/college-reports/file.pdf",
+        user_document1 = UserDocument(name="College Report",
+                                          path="/static/uploads/college-files/file.pdf",
                                           user=user_1)
-        user_report1.save()
+        user_document1.save()
 
 
-        r = self.client.get('/user_reports/1')
+        r = self.client.get('/user_documents/1')
         result = json.loads(r.data)
         print result
         self.assertEqual(result['name'], "College Report")
 
-    def test_update_existing_user_report(self):
-        print "test_update_existing_user_report"
+    def test_update_existing_user_document(self):
+        print "test_update_existing_user_document"
 
         role = Role(name=Name("Student"))
         role.save()
@@ -3027,20 +3027,20 @@ class TestUserReport(TestCase):
                     address=("1-3-176/D"), city=("Hyd"), country=("India"), zip_code=("500080"), role = role)
         user.save()
 
-        user_report1 = UserReport(name="College Report",
-                                          path="/static/uploads/college-reports/file.pdf",
+        user_document1 = UserDocument(name="College Report",
+                                          path="/static/uploads/college-files/file.pdf",
                                           user=user_1)
-        user_report1.save()
+        user_document1.save()
 
-        r = self.client.put('/user_reports/1',
+        r = self.client.put('/user_documents/1',
                             data=json.dumps({'name': 'User Photos'}))
 
         result = json.loads(r.data)
 
         self.assertEqual(result['name'], "User Photos")
 
-    def test_create_new_user_report(self):
-        print "test_create_new_user_report"
+    def test_create_new_user_document(self):
+        print "test_create_new_user_document"
 
         role = Role(name=Name("Student"))
         role.save()
@@ -3051,16 +3051,16 @@ class TestUserReport(TestCase):
         user.save()
 
         
-        r = self.client.post('/user_reports',
+        r = self.client.post('/user_documents',
                              data=json.dumps({ 'name' : 'College Report',
-                                               'path' : '/static/uploads/college-reports/file.pdf', 
+                                               'path' : '/static/uploads/college-files/file.pdf', 
                                                'user': user.to_client()
                                            }))
         result = json.loads(r.data)
-        self.assertEqual(result['name'], "College Report")
+        self.assertEqual(result['name'], "College File")
 
-    def test_delete_user_report(self):
-        print "test_delete_user_report"
+    def test_delete_user_document(self):
+        print "test_delete_user_document"
         user_1 = User(name=Name("madhavi"), email=Email("madhavi@vlabs.ac.in"),
                     password=("madhavi"), mobile_number=("9866188505"), date_of_birth=("06/02/1991"),
                     address=("1-3-176/D"), city=("Hyd"), country=("India"), zip_code=("500080"), role = role)
@@ -3072,18 +3072,18 @@ class TestUserReport(TestCase):
         user_2.save()
 
 
-        user_report1 = UserReport(name="College Report",
-                                          path="/static/uploads/college-reports/file.pdf",
+        user_document1 = UserDocument(name="College File",
+                                          path="/static/uploads/college-files/file.pdf",
                                           user=user_1)
-        user_report1.save()
+        user_document1.save()
 
-        user_report2 = UserReport(name="User Photos",
+        user_document2 = UserDocument(name="User Photos",
                                           path="/static/uploads/user-photos/photo.png",
                                           user=user_2)
-        user_report2.save()
+        user_document2.save()
         
-        r = self.client.delete('/user_reports/1')
-        r = self.client.get('/user_reports')
+        r = self.client.delete('/user_documents/1')
+        r = self.client.get('/user_documents')
         result = json.loads(r.data)
         self.assertEqual(len(result), 1)
 
