@@ -54,10 +54,12 @@ from op_exceptions import AttributeRequired
 from utils import typecheck
 from werkzeug.security import generate_password_hash, \
      check_password_hash
+from flask import Flask
+from flask_mail import Mail, Message
 
 
 db = SQLAlchemy()
-
+mail = Mail()
 
 # Abstract class to hold common methods
 class Entity(db.Model):
@@ -270,7 +272,7 @@ class TestRole(TestCase):
         
 #+END_SRC
 #+BEGIN_SRC python :tangle tests/test_db.py :eval no
-    def test_role_constructor(self):
+  def test_role_constructor(self):
         print "test_role_constructor"
         name = Name("Admin")
         role = Role(name=name)
@@ -495,29 +497,32 @@ class TestUser(TestCase):
         
 #+END_SRC
 #+BEGIN_SRC python :tangle tests/test_db.py :eval no
-    def test_user_constructor(self):
+  def test_user_constructor(self):
         print "test_user_constructor"
         name = Name("Admin")
         role = Role(name=name)
         role.save()
-         
-        user = User(name=Name("Ambika"), email=Email("ambika@vlabs.ac.in"), role = role)
+        
+        user = User(name=Name("madhavi"), email=Email("madhavi@vlabs.ac.in"),
+                    password=("madhavi"), mobile_number=("9866188505"), date_of_birth=("06/02/1991"),
+                    address=("1-3-176/D"), city=("Hyd"), country=("India"), zip_code=("500080"), role = role1)
         user.save()
-        self.assertEqual("Ambika", user.name)
-        self.assertEqual("ambika@vlabs.ac.in", user.email)
-
+          
+        self.assertEqual("madhavi", user.name)
+        self.assertEqual("madhavi@vlabs.ac.in", user.email)
+        
         # Calling the user constructor without any arguments should
         # raise AttributeRequired exception
         self.assertRaises(AttributeRequired, User)
-
+        
         # Calling the user constructor with necessary arguments
         # (name, email and role) but with wrong type should raise TypeError
         self.assertRaises(TypeError, User,
                           ,**{'name': "Admin",
                              'email': "ambika@vlabs.ac.in",
                              'role': role
-                            })
-
+                         })
+        
 #+END_SRC
 **** Functions that operate on the Role domain
 ***** getAll: Nil --> set[User]
@@ -529,25 +534,31 @@ class TestUser(TestCase):
 #+END_SRC
 ***** Test getAll: Nil --> set[User]
 #+BEGIN_SRC python :tangle tests/test_db.py :eval no
-    def test_user_get_all(self):
-        print "test_user_get_all"
-        role = Role(name=Name("Admin"))
-        user_1 = User(name=Name("Thirumal Ravula"),
-                      email=Email("travula@gmail.com"), role=role)
-        user_2 = User(name=Name("Anon Ray"),
-                      email=Email("anon.ray@gmail.com"), role=role)
+  def test_user_get_all(self):
+      print "test_user_get_all"
+      role = Role(name=Name("Admin"))
 
-        user_1.save()
-        user_2.save()
+      user1 = User(name=Name("madhavi"), email=Email("madhavi@vlabs.ac.in"),
+                   password=("madhavi"), mobile_number=("9866188505"), date_of_birth=("06/02/1991"),
+                   address=("1-3-176/D"), city=("Hyd"), country=("India"), zip_code=("500080"), role = role1)
 
-        user_list = User.get_all()
+      user1.save()
+      
+      user2 = User(name=Name("sripathi"), email=Email("sripathi@vlabs.ac.in"),
+                   password=("madhavi"), mobile_number=("9898989898"), date_of_birth=("07/04/1993"),
+                   address=("flat number-102"), city=("Hyd"), country=("India"), zip_code=("500080"), role = role2)
+      
+      user2.save()
 
-        self.assertEqual("travula@gmail.com", user_list[0].email)
-        self.assertEqual("Thirumal Ravula", user_list[0].name)
-        self.assertEqual("Admin", user_list[0].role.name)
-        self.assertEqual("anon.ray@gmail.com", user_list[1].email)
-        self.assertEqual("Anon Ray", user_list[1].name)
-        self.assertEqual("Admin", user_list[1].role.name)
+
+      user_list = User.get_all()
+
+      self.assertEqual("madhavi@vlabs.ac.in", user_list[0].email)
+      self.assertEqual("madhavi", user_list[0].name)
+      self.assertEqual("Admin", user_list[0].role.name)
+      self.assertEqual("sripathi@vlabs.ac.in", user_list[1].email)
+      self.assertEqual("sripathi", user_list[1].name)
+      self.assertEqual("Executive", user_list[1].role.name)
 #+END_SRC
 ***** getUser: Id --> User
 #+BEGIN_SRC python :tangle src/db.py :eval no
@@ -558,12 +569,17 @@ class TestUser(TestCase):
 #+END_SRC
 ***** Test getUser: Id --> User
 #+BEGIN_SRC python :tangle tests/test_db.py :eval no
-    def test_get_user_by_id(self):
-        print "test_get_user_by_id"
-        role = Role(name=Name("Admin"))
-        role.save()
-        user = User(name=Name("ambika"), email=Email("ambika@vlabs.ac.in"), role=role)
-        self.assertEqual(user.get_by_id(1).name, "ambika")
+  def test_get_user_by_id(self):
+      print "test_get_user_by_id"
+      role = Role(name=Name("Admin"))
+      role.save()
+      user = User(name=Name("madhavi"), email=Email("madhavi@vlabs.ac.in"),
+                   password=("madhavi"), mobile_number=("9866188505"), date_of_birth=("06/02/1991"),
+                   address=("1-3-176/D"), city=("Hyd"), country=("India"), zip_code=("500080"), role = role1)
+
+      user.save()
+
+      self.assertEqual(user.get_by_id(1).name, "madhavi")
 #+END_SRC
 
 ***** getName: User --> Name
@@ -574,12 +590,17 @@ class TestUser(TestCase):
 
 ***** Test getName: User --> Name 
 #+BEGIN_SRC python :tangle tests/test_db.py :eval no
-    def test_get_user_name(self):
-        print "test_get_user_name"
-        role = Role(name=Name("Admin"))
-        user = User(name=Name("ambika"), email=Email("ambika@vlabs.ac.in"), role=role)
-        user_name = user.get_name()
-        self.assertEqual(user_name, "ambika")
+  def test_get_user_name(self):
+      print "test_get_user_name"
+      role = Role(name=Name("Admin"))
+      user = User(name=Name("madhavi"), email=Email("madhavi@vlabs.ac.in"),
+                  password=("madhavi"), mobile_number=("9866188505"), date_of_birth=("06/02/1991"),
+                  address=("1-3-176/D"), city=("Hyd"), country=("India"), zip_code=("500080"), role = role1)
+
+      user.save()
+
+      user_name = user.get_name()
+      self.assertEqual(user_name, "ambika")
 #+END_SRC
 
 ***** getEmail: User --> Email
@@ -590,12 +611,16 @@ class TestUser(TestCase):
 
 ***** Test getEmail: User --> Email
 #+BEGIN_SRC python :tangle tests/test_db.py :eval no
-    def test_get_user_email(self):
-        print "test_get_user_email"
-        role = Role(name=Name("Admin"))
-        user = User(name=Name("ambika"), email=Email("ambika@vlabs.ac.in"), role=role)
-        user_email = user.get_email()
-        self.assertEqual(user_email, "ambika@vlabs.ac.in")
+  def test_get_user_email(self):
+      print "test_get_user_email"
+      role = Role(name=Name("Admin"))
+      user = User(name=Name("madhavi"), email=Email("madhavi@vlabs.ac.in"),
+                  password=("madhavi"), mobile_number=("9866188505"), date_of_birth=("06/02/1991"),
+                  address=("1-3-176/D"), city=("Hyd"), country=("India"), zip_code=("500080"), role = role1)
+      user.save()
+
+      user_email = user.get_email()
+      self.assertEqual(user_email, "madhavi@vlabs.ac.in")
 #+END_SRC
 
 ***** getpassword: User --> Password
@@ -606,12 +631,15 @@ class TestUser(TestCase):
 
 ***** Test getPassword: User --> Password
 #+BEGIN_SRC python :tangle tests/test_db.py :eval no
-    def test_get_user_password(self):
-        print "test_get_user_email"
-        role = Role(name=Name("Admin"))
-        user = User(name=Name("ambika"), email=Email("ambika@vlabs.ac.in"), password("ambika") role=role)
-        user_password = user.get_password()
-        self.assertEqual(user_password, user.check_password("ambika"))
+  def test_get_user_password(self):
+      print "test_get_user_email"
+      role = Role(name=Name("Admin"))
+      user = User(name=Name("madhavi"), email=Email("madhavi@vlabs.ac.in"),
+                  password=("madhavi"), mobile_number=("9866188505"), date_of_birth=("06/02/1991"),
+                  address=("1-3-176/D"), city=("Hyd"), country=("India"), zip_code=("500080"), role = role1)
+
+      user_password = user.get_password()
+      self.assertEqual(user_password, user.check_password("madhavi"))
 #+END_SRC
 
 ***** getMobileNumber: User --> MobileNumber
@@ -622,14 +650,15 @@ class TestUser(TestCase):
       
 ***** Test getMobileNumber: User --> MobileNumber
 #+BEGIN_SRC python :tangle tests/test_db.py :eval no
-    def test_get_mobile_number(self):
-        print "test_get_user_inst_name"
-        role = Role(name=Name("Admin"))
-        user = User(name=Name("ambika"), email=Email("ambika@vlabs.ac.in"),
-                    role=role,
-                    institute_name="IIIT-H")
-        user.save()
-        self.assertEqual(user.institute_name, "IIIT-H")
+  def test_get_mobile_number(self):
+      print "test_get_user_inst_name"
+      role = Role(name=Name("Admin"))
+      user = User(name=Name("madhavi"), email=Email("madhavi@vlabs.ac.in"),
+                  password=("madhavi"), mobile_number=("9866188505"), date_of_birth=("06/02/1991"),
+                  address=("1-3-176/D"), city=("Hyd"), country=("India"), zip_code=("500080"), role = role1)
+
+      user.save()
+      self.assertEqual(user.mobile_number, "9866188505")
 #+END_SRC
 
 ***** getRole: User --> Role
@@ -641,12 +670,15 @@ class TestUser(TestCase):
 
 ***** Test getRole: User --> Role
 #+BEGIN_SRC python :tangle tests/test_db.py :eval no
-    def test_get_user_role(self):
-        print "test_get_user_role"
-        role = Role(name=Name("Admin"))
-        user = User(name=Name("ambika"), email=Email("ambika@vlabs.ac.in"), role=role)
-        user_role = user.get_role()
-        self.assertEqual(user_role, role)
+  def test_get_user_role(self):
+      print "test_get_user_role"
+      role = Role(name=Name("Admin"))
+      user = User(name=Name("madhavi"), email=Email("madhavi@vlabs.ac.in"),
+                  password=("madhavi"), mobile_number=("9866188505"), date_of_birth=("06/02/1991"),
+                  address=("1-3-176/D"), city=("Hyd"), country=("India"), zip_code=("500080"), role = role1)
+
+      user_role = user.get_role()
+      self.assertEqual(user_role, role)
 #+END_SRC
 
 ***** getDateOfBirth: User --> DateofBirth
@@ -655,15 +687,17 @@ class TestUser(TestCase):
         return self.date_of_birth
 #+END_SRC
 
-***** Test timeOfCreation: User --> Datetime
+***** Test testDateOfBirth: User --> Datetime
 #+BEGIN_SRC python :tangle tests/test_db.py :eval no
-    def test_get_user_toc(self):
-        print "test_get_user_toc"
-        role = Role(name=Name("Admin"))
-        user = User(name=Name("ambika"), email=Email("ambika@vlabs.ac.in"), role=role,\
-                    created ="Mon Nov 23 2015 06:18:26 GMT-0500 (EST)")
-        user.save()
-        self.assertEqual(user.created, "Mon Nov 23 2015 06:18:26 GMT-0500 (EST)")
+  def test_get_user_dob(self):
+      print "test_get_user_dob"
+      role = Role(name=Name("Admin"))
+      user = User(name=Name("madhavi"), email=Email("madhavi@vlabs.ac.in"),
+                  password=("madhavi"), mobile_number=("9866188505"), date_of_birth=("06/02/1991"),
+                  address=("1-3-176/D"), city=("Hyd"), country=("India"), zip_code=("500080"), role = role1)
+
+      user.save()
+      self.assertEqual(user.date_of_birth, "06/02/1991")
 #+END_SRC
 
 ***** getAddress: User --> String
@@ -674,12 +708,15 @@ class TestUser(TestCase):
       
 ***** Test getAddress: User --> String 
 #+BEGIN_SRC python :tangle tests/test_db.py :eval no
-    def test_get_adress(self):
-        print "test_get_user_name"
-        role = Role(name=Name("Admin"))
-        user = User(name=Name("ambika"), email=Email("ambika@vlabs.ac.in"), role=role)
-        user_name = user.get_name()
-        self.assertEqual(user_name, "ambika")
+  def test_get_address(self):
+      print "test_get_user_address"
+      role = Role(name=Name("Admin"))
+      user = User(name=Name("madhavi"), email=Email("madhavi@vlabs.ac.in"),
+                  password=("madhavi"), mobile_number=("9866188505"), date_of_birth=("06/02/1991"),
+                  address=("1-3-176/D"), city=("Hyd"), country=("India"), zip_code=("500080"), role = role1)
+
+      user.save()
+      self.assertEqual(user.address, "1-3-176/D")
 #+END_SRC
 
 ***** getCity: User --> String
@@ -687,15 +724,18 @@ class TestUser(TestCase):
     def get_city(self):
         return self.city
 #+END_SRC
-
+      
 ***** Test getCity: User --> String 
 #+BEGIN_SRC python :tangle tests/test_db.py :eval no
-    def test_get_city(self):
-        print "test_get_user_name"
-        role = Role(name=Name("Admin"))
-        user = User(name=Name("ambika"), email=Email("ambika@vlabs.ac.in"), role=role)
-        user_name = user.get_name()
-        self.assertEqual(user_name, "ambika")
+  def test_get_city(self):
+      print "test_get_user_name"
+      role = Role(name=Name("Admin"))
+      user = User(name=Name("madhavi"), email=Email("madhavi@vlabs.ac.in"),
+                  password=("madhavi"), mobile_number=("9866188505"), date_of_birth=("06/02/1991"),
+                  address=("1-3-176/D"), city=("Hyd"), country=("India"), zip_code=("500080"), role = role1)
+
+      user_name = user.get_name()
+      self.assertEqual(user_name, "ambika")
 #+END_SRC
 
 ***** getCountry: User --> String
@@ -706,12 +746,15 @@ class TestUser(TestCase):
 
 ***** Test getCountry: User --> String 
 #+BEGIN_SRC python :tangle tests/test_db.py :eval no
-    def test_get_country(self):
-        print "test_get_user_name"
-        role = Role(name=Name("Admin"))
-        user = User(name=Name("ambika"), email=Email("ambika@vlabs.ac.in"), role=role)
-        user_name = user.get_name()
-        self.assertEqual(user_name, "ambika")
+  def test_get_country(self):
+      print "test_get_user_name"
+      role = Role(name=Name("Admin"))
+      user = User(name=Name("madhavi"), email=Email("madhavi@vlabs.ac.in"),
+                  password=("madhavi"), mobile_number=("9866188505"), date_of_birth=("06/02/1991"),
+                  address=("1-3-176/D"), city=("Hyd"), country=("India"), zip_code=("500080"), role = role1)
+      
+      user_name = user.get_name()
+      self.assertEqual(user_name, "ambika")
 #+END_SRC
 
 ***** getZipcode: User --> Integer
@@ -722,12 +765,15 @@ class TestUser(TestCase):
 
 ***** Test getZipcode: User --> Integer 
 #+BEGIN_SRC python :tangle tests/test_db.py :eval no
-    def test_get_user_name(self):
-        print "test_get_user_name"
-        role = Role(name=Name("Admin"))
-        user = User(name=Name("ambika"), email=Email("ambika@vlabs.ac.in"), role=role)
-        user_name = user.get_name()
-        self.assertEqual(user_name, "ambika")
+  def test_get_user_name(self):
+      print "test_get_user_name"
+      role = Role(name=Name("Admin"))
+      user = User(name=Name("madhavi"), email=Email("madhavi@vlabs.ac.in"),
+                  password=("madhavi"), mobile_number=("9866188505"), date_of_birth=("06/02/1991"),
+                  address=("1-3-176/D"), city=("Hyd"), country=("India"), zip_code=("500080"), role = role1)
+    
+      user_name = user.get_name()
+      self.assertEqual(user_name, "ambika")
 #+END_SRC
 
 ***** setName: User, Name --> Void
@@ -739,15 +785,18 @@ class TestUser(TestCase):
 
 ***** Test setName: User, Name --> Void
 #+BEGIN_SRC python :tangle tests/test_db.py :eval no
-    def test_set_user_name(self):
-        print "test_set_user_name"
-        role = Role(name=Name("Admin"))
-        user = User(name=Name("ambika"), email=Email("ambika@vlabs.ac.in"), role=role)     
-        user.save()
-        user.set_name(Name("Madhavi"))
-        user.save()
-        user = User.get_by_id(1)
-        self.assertEqual("Madhavi", user.name)
+  def test_set_user_name(self):
+      print "test_set_user_name"
+      role = Role(name=Name("Admin"))
+      user = User(name=Name("madhavi"), email=Email("madhavi@vlabs.ac.in"),
+                  password=("madhavi"), mobile_number=("9866188505"), date_of_birth=("06/02/1991"),
+                  address=("1-3-176/D"), city=("Hyd"), country=("India"), zip_code=("500080"), role = role1)
+
+      user.save()
+      user.set_name(Name("Madhavi"))
+      user.save()
+      user = User.get_by_id(1)
+      self.assertEqual("Madhavi", user.name)
 #+END_SRC
 
 ***** setEmail: User, Email --> Void
@@ -759,15 +808,18 @@ class TestUser(TestCase):
 
 ***** Test setEmail: User, Email --> Void
 #+BEGIN_SRC python :tangle tests/test_db.py :eval no
-    def test_set_user_email(self):
-        print "test_set_user_email"
-        role = Role(name=Name("Admin"))
-        user = User(name=Name("ambika"), email=Email("ambika@vlabs.ac.in"), role=role)     
-        user.save()
-        user.set_email(Email("madhavi@vlabs.ac.in"))
-        user.save()
-        user = User.get_by_id(1)
-        self.assertEqual("madhavi@vlabs.ac.in", user.email)
+  def test_set_user_email(self):
+      print "test_set_user_email"
+      role = Role(name=Name("Admin"))
+      user = User(name=Name("madhavi"), email=Email("madhavi@vlabs.ac.in"),
+                  password=("madhavi"), mobile_number=("9866188505"), date_of_birth=("06/02/1991"),
+                  address=("1-3-176/D"), city=("Hyd"), country=("India"), zip_code=("500080"), role = role1)
+
+      user.save()
+      user.set_email(Email("madhavi@vlabs.ac.in"))
+      user.save()
+      user = User.get_by_id(1)
+      self.assertEqual("madhavi@vlabs.ac.in", user.email)
 #+END_SRC
 
 ***** setPassword: User, Password --> Void
@@ -785,14 +837,17 @@ class TestUser(TestCase):
 
 ***** Test setMobileNumber: User, Mobile Number --> Void
 #+BEGIN_SRC python :tangle tests/test_db.py :eval no
-    def test_set_user_institute_name(self):
-        print "test_set_user_institute_name"
-        role = Role(name=Name("Admin"))
-        user = User(name=Name("ambika"), email=Email("ambika@vlabs.ac.in"), role=role)     
-        user.save()
-        user.set_institute_name("IIIT-H")
-        user.save()
-        self.assertEqual("IIIT-H", user.institute_name)
+  def test_set_user_institute_name(self):
+      print "test_set_user_institute_name"
+      role = Role(name=Name("Admin"))
+      user = User(name=Name("madhavi"), email=Email("madhavi@vlabs.ac.in"),
+                  password=("madhavi"), mobile_number=("9866188505"), date_of_birth=("06/02/1991"),
+                  address=("1-3-176/D"), city=("Hyd"), country=("India"), zip_code=("500080"), role = role1)
+
+      user.save()
+      user.set_institute_name("IIIT-H")
+      user.save()
+      self.assertEqual("IIIT-H", user.institute_name)
 #+END_SRC
 
 ***** setDateOfBirth: User, DateOfBirth --> Void
@@ -803,14 +858,17 @@ class TestUser(TestCase):
 
 ***** Test setDateOfBirth: User, DateOfBirth --> Void
 #+BEGIN_SRC python :tangle tests/test_db.py :eval no
-    def test_set_date_of_birth(self):
-        print "test_set_user_last_active"
-        role = Role(name=Name("Admin"))
-        user = User(name=Name("ambika"), email=Email("ambika@vlabs.ac.in"), role=role)     
-        user.save()
-        user.set_last_active("Mon Nov 23 2015 06:18:26 GMT-0500 (EST)")
-        user.save()
-        self.assertEqual("Mon Nov 23 2015 06:18:26 GMT-0500 (EST)", user.last_active)
+  def test_set_date_of_birth(self):
+      print "test_set_user_last_active"
+      role = Role(name=Name("Admin"))
+      user = User(name=Name("madhavi"), email=Email("madhavi@vlabs.ac.in"),
+                  password=("madhavi"), mobile_number=("9866188505"), date_of_birth=("06/02/1991"),
+                  address=("1-3-176/D"), city=("Hyd"), country=("India"), zip_code=("500080"), role = role1)
+
+      user.save()
+      user.set_last_active("Mon Nov 23 2015 06:18:26 GMT-0500 (EST)")
+      user.save()
+      self.assertEqual("Mon Nov 23 2015 06:18:26 GMT-0500 (EST)", user.last_active)
 #+END_SRC
 
 ***** set Address: User, String --> Void
@@ -821,14 +879,17 @@ class TestUser(TestCase):
 
 ***** Test set Address: User, String --> Void
 #+BEGIN_SRC python :tangle tests/test_db.py :eval no
-    def test_set_address(self):
-        print "test_set_user_last_active"
-        role = Role(name=Name("Admin"))
-        user = User(name=Name("ambika"), email=Email("ambika@vlabs.ac.in"), role=role)     
-        user.save()
-        user.set_toc("Mon Nov 23 2015 06:18:26 GMT-0500 (EST)")
-        user.save()
-        self.assertEqual("Mon Nov 23 2015 06:18:26 GMT-0500 (EST)", user.last_active)
+  def test_set_address(self):
+      print "test_set_user_last_active"
+      role = Role(name=Name("Admin"))
+      user = User(name=Name("madhavi"), email=Email("madhavi@vlabs.ac.in"),
+                  password=("madhavi"), mobile_number=("9866188505"), date_of_birth=("06/02/1991"),
+                  address=("1-3-176/D"), city=("Hyd"), country=("India"), zip_code=("500080"), role = role1)
+
+      user.save()
+      user.set_toc("Mon Nov 23 2015 06:18:26 GMT-0500 (EST)")
+      user.save()
+      self.assertEqual("Mon Nov 23 2015 06:18:26 GMT-0500 (EST)", user.last_active)
 #+END_SRC
 
 ***** set City: User, String --> Void
@@ -839,14 +900,17 @@ class TestUser(TestCase):
 
 ***** Test set City: User, String --> Void
 #+BEGIN_SRC python :tangle tests/test_db.py :eval no
-    def test_set_city(self):
-        print "test_set_user_last_active"
-        role = Role(name=Name("Admin"))
-        user = User(name=Name("ambika"), email=Email("ambika@vlabs.ac.in"), role=role)     
-        user.save()
-        user.set_toc("Mon Nov 23 2015 06:18:26 GMT-0500 (EST)")
-        user.save()
-        self.assertEqual("Mon Nov 23 2015 06:18:26 GMT-0500 (EST)", user.last_active)
+  def test_set_city(self):
+      print "test_set_user_last_active"
+      role = Role(name=Name("Admin"))
+      user = User(name=Name("madhavi"), email=Email("madhavi@vlabs.ac.in"),
+                  password=("madhavi"), mobile_number=("9866188505"), date_of_birth=("06/02/1991"),
+                  address=("1-3-176/D"), city=("Hyd"), country=("India"), zip_code=("500080"), role = role1)
+
+      user.save()
+      user.set_toc("Mon Nov 23 2015 06:18:26 GMT-0500 (EST)")
+      user.save()
+      self.assertEqual("Mon Nov 23 2015 06:18:26 GMT-0500 (EST)", user.last_active)
 #+END_SRC
 
 ***** set Country: User, String --> Void
@@ -857,14 +921,17 @@ class TestUser(TestCase):
 
 ***** Test set Country: User, String --> Void
 #+BEGIN_SRC python :tangle tests/test_db.py :eval no
-    def test_set_country(self):
-        print "test_set_user_last_active"
-        role = Role(name=Name("Admin"))
-        user = User(name=Name("ambika"), email=Email("ambika@vlabs.ac.in"), role=role)     
-        user.save()
-        user.set_toc("Mon Nov 23 2015 06:18:26 GMT-0500 (EST)")
-        user.save()
-        self.assertEqual("Mon Nov 23 2015 06:18:26 GMT-0500 (EST)", user.last_active)
+  def test_set_country(self):
+      print "test_set_user_last_active"
+      role = Role(name=Name("Admin"))
+      user = User(name=Name("madhavi"), email=Email("madhavi@vlabs.ac.in"),
+                  password=("madhavi"), mobile_number=("9866188505"), date_of_birth=("06/02/1991"),
+                  address=("1-3-176/D"), city=("Hyd"), country=("India"), zip_code=("500080"), role = role1)
+
+      user.save()
+      user.set_toc("Mon Nov 23 2015 06:18:26 GMT-0500 (EST)")
+      user.save()
+      self.assertEqual("Mon Nov 23 2015 06:18:26 GMT-0500 (EST)", user.last_active)
 #+END_SRC
 
 ***** set Zipcode: User, Integer --> Void
@@ -875,14 +942,17 @@ class TestUser(TestCase):
 
 ***** Test Zipcode: User, Integer --> Void
 #+BEGIN_SRC python :tangle tests/test_db.py :eval no
-    def test_set_zip_code(self):
-        print "test_set_user_last_active"
-        role = Role(name=Name("Admin"))
-        user = User(name=Name("ambika"), email=Email("ambika@vlabs.ac.in"), role=role)     
-        user.save()
-        user.set_toc("Mon Nov 23 2015 06:18:26 GMT-0500 (EST)")
-        user.save()
-        self.assertEqual("Mon Nov 23 2015 06:18:26 GMT-0500 (EST)", user.last_active)
+  def test_set_zip_code(self):
+      print "test_set_user_last_active"
+      role = Role(name=Name("Admin"))
+      user = User(name=Name("madhavi"), email=Email("madhavi@vlabs.ac.in"),
+                  password=("madhavi"), mobile_number=("9866188505"), date_of_birth=("06/02/1991"),
+                  address=("1-3-176/D"), city=("Hyd"), country=("India"), zip_code=("500080"), role = role1)
+
+      user.save()
+      user.set_toc("Mon Nov 23 2015 06:18:26 GMT-0500 (EST)")
+      user.save()
+      self.assertEqual("Mon Nov 23 2015 06:18:26 GMT-0500 (EST)", user.last_active)
 #+END_SRC
 
 ***** setRole: User, Role --> Void
@@ -895,16 +965,19 @@ class TestUser(TestCase):
 
 ***** Test setRole: User, Role --> Void
 #+BEGIN_SRC python :tangle tests/test_db.py :eval no
-    def test_set_user_role(self):
-        print "test_set_user_role"
-        role1 = Role(name=Name("Admin"))
-        role2 = Role(name=Name("OC"))
-        user = User(name=Name("ambika"), email=Email("ambika@vlabs.ac.in"), role=role1)
-        user.save()     
-        user.set_role(role2)
-        user.save()
-        user = User.get_by_id(1)
-        self.assertEqual(user.role, role2)
+  def test_set_user_role(self):
+      print "test_set_user_role"
+      role1 = Role(name=Name("Admin"))
+      role2 = Role(name=Name("OC"))
+      user = User(name=Name("madhavi"), email=Email("madhavi@vlabs.ac.in"),
+                  password=("madhavi"), mobile_number=("9866188505"), date_of_birth=("06/02/1991"),
+                  address=("1-3-176/D"), city=("Hyd"), country=("India"), zip_code=("500080"), role = role1)
+
+      user.save()     
+      user.set_role(role2)
+      user.save()
+      user = User.get_by_id(1)
+      self.assertEqual(user.role, role2)
 #+END_SRC
 
 ***** to_client
@@ -926,16 +999,19 @@ class TestUser(TestCase):
       
 ***** Test User to_client
 #+BEGIN_SRC python :tangle tests/test_db.py :eval no
-    def test_user_to_client(self):
-        print "test_user_to_client"
-        role = Role(name=Name("Admin"))
-        user = User(name=Name("madhavi"), email=Email("madhavi@vlabs.ac.in"), password="madhavi", role = role)
-        user.save()
-        user = User.get_by_id(1)
-        user_dict = user.to_client()
-        self.assertEqual("madhavi@vlabs.ac.in", user_dict['email'])
-        self.assertEqual("madhavi", user_dict['name'])
-        self.assertEqual("Admin", user_dict['role']['name'])
+  def test_user_to_client(self):
+      print "test_user_to_client"
+      role = Role(name=Name("Admin"))
+      user = User(name=Name("madhavi"), email=Email("madhavi@vlabs.ac.in"),
+                  password=("madhavi"), mobile_number=("9866188505"), date_of_birth=("06/02/1991"),
+                  address=("1-3-176/D"), city=("Hyd"), country=("India"), zip_code=("500080"), role = role1)
+
+      user.save()
+      user = User.get_by_id(1)
+      user_dict = user.to_client()
+      self.assertEqual("madhavi@vlabs.ac.in", user_dict['email'])
+      self.assertEqual("madhavi", user_dict['name'])
+      self.assertEqual("Admin", user_dict['role']['name'])
 #+END_SRC
 
 *** College
@@ -1586,7 +1662,7 @@ import os
 from flask import Flask, jsonify, make_response
 # from flask.ext.cors import CORS
 
-from db import db
+from db import db, mail
 from api import api
 # import config file
 import config
@@ -1601,7 +1677,13 @@ def create_app(config):
 
     # init sqlalchemy db instance
     db.init_app(app)
+
+    # init mail instance    
+    mail.init_app(app)
+
     db.app = app
+    db.mail = mail    
+
     # register blueprints
     app.register_blueprint(api)
  #   configure_logging(app)
@@ -1897,6 +1979,12 @@ entity_pairs = {
      
 **** GET APIS
 #+BEGIN_SRC python :tangle src/api.py :eval no
+@api.route("/")
+def index():
+   msg = Message('Hello', sender = 'madhavipuliraju@gmail.com', recipients = ['madhavi@vlabs.ac.in', 'sripathi@vlabs.ac.in', 'kammari.sripathi@gmail.com'])
+   msg.body = "Hello sripathi from Flask-Mail"
+   mail.send(msg)
+   return "Sent"
 
 def allowed_file(filename):
     return '.' in filename and \
