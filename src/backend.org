@@ -1982,7 +1982,10 @@ entity_pairs = {
 @api.route("/send_email")
 def index():
    msg = Message('Hello', sender = 'madhavipuliraju@gmail.com', recipients = ['madhavi@vlabs.ac.in', 'sripathi@vlabs.ac.in', 'kammari.sripathi@gmail.com'])
-   msg.body = "Hello sripathi from Flask-Mail"
+   msg.body = "Hello Flask message attatchment sent from Flask-Mail"
+   with api.open_resource("/home/ambika/Desktop/red.jpg") as fp:
+       msg.attach("/home/ambika/Desktop/red.jpg", "image/jpg", fp.read())
+
    mail.send(msg)
    return "Sent"
 
