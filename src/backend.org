@@ -2383,15 +2383,15 @@ def save_user_documents(id):
     if request.method == 'GET':
         return '''
         <!doctype html>
-        <title>Upload User files</title>
-        <h1>Upload User files</h1>
+        <title>Upload User Documents</title>
+        <h1>Upload User Documents</h1>
         <form action="" method=post enctype=multipart/form-data>
         <p><input type=file name=file>
         <input type=submit value=Upload>
         </form>
         '''
     if request.method == 'POST':
-        url = APP_URL + "/upload_user_documents/"\
+        url = APP_URL + "/user_documents/"\
               + id
         response = requests.get(url)
 
@@ -2414,7 +2414,7 @@ def save_user_documents(id):
             else:
                 return "file format is not in Allowed Extensions"
         else:
-            return "No entry for 'Upload Files' entity with given id"
+            return "No entry for 'User Documents' entity with given id"
 
 
 def allowed_file(filename):
