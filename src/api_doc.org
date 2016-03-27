@@ -44,6 +44,11 @@ Following is the list of current REST APIs provided by outreach portal:
 - /groups [GET, POST]
 - /groups/<int:id> [GET, PUT, DELETE]
 - /groups?query_param1=val1&query_param2=val2&..query_paramn=valn [GET]
+- /user_reports [GET, POST]
+- /user_documents/<int:id> [GET, PUT, DELETE]
+- /user_documents/<int:id>?fields=field1,field2 [GET]
+- /user_documents?query_param1=val1&query_param2=val2&..query_paramn=valn [GET]
+- /upload_user_document/<id> [POST]
 #+END_SRC
 *** /roles
 - Parameters
@@ -780,3 +785,227 @@ Following is the list of current REST APIs provided by outreach portal:
 "madhavi@vlabs.ac.in"}, "name": "Malla Reddy"}]
    #+END_SRC
 
+*** /user_documents
+- Parameters
+|-----------+------------------------------------------------------------------------------------------------|
+| *Name*    | *Description*                                                                                  |
+|-----------+------------------------------------------------------------------------------------------------|
+| *id*      | Indicates the unique id of the user_document. *Example Value:* 2                               |
+|-----------+------------------------------------------------------------------------------------------------|
+| *name*    | Specifies the name of user_document. *Example Value:*  Attendance Sheet, Feedback Form, Photos |
+|-----------+------------------------------------------------------------------------------------------------|
+| *user_id* | Indicates the id of the user. *Example Value:* {"id" : 1 }                                     |
+|-----------+------------------------------------------------------------------------------------------------|
+| *path*    | Specifies the path of user_document. *Example Value:* /static/uploads/image.jpg                |
+|-----------+------------------------------------------------------------------------------------------------|
+- *GET* 
+ + Example Request
+  #+BEGIN_SRC
+  /user_documents
+  #+END_SRC
+
+ + Example Result
+  #+BEGIN_SRC
+{
+  "id": 1, 
+  "name": "photo", 
+  "path": "/static/uploads/blue-2016-03-27-17-15-27.jpg", 
+  "user": {
+    "address": "1-3-176/D", 
+    "city": "Hyd", 
+    "country": "India", 
+    "date_of_birth": "06/02/1991", 
+    "email": "madhavi@vlabs.ac.in", 
+    "id": 1, 
+    "mobile_number": 9866188505, 
+    "name": "madhavi", 
+    "role": {
+      "id": 1, 
+      "name": "Administrator"
+    }, 
+    "zip_code": 500080
+  }
+}
+
+  #+END_SRC
+
+- *POST* 
+ + Example Request
+  #+BEGIN_SRC
+ json =  {
+"name":"photo",
+"user":{"id":1} 
+}
+  #+END_SRC
+
+ + Example Result
+
+  #+BEGIN_SRC
+
+{
+  "id": 1, 
+  "name": "photo", 
+  "path": "/static/uploads/blue-2016-03-27-17-15-27.jpg", 
+  "user": {
+    "address": "1-3-176/D", 
+    "city": "Hyd", 
+    "country": "India", 
+    "date_of_birth": "06/02/1991", 
+    "email": "madhavi@vlabs.ac.in", 
+    "id": 1, 
+    "mobile_number": 9866188505, 
+    "name": "madhavi", 
+    "role": {
+      "id": 1, 
+      "name": "Administrator"
+    }, 
+    "zip_code": 500080
+  }
+}
+ #+END_SRC
+   
+*** /user_documents/<int:id>
+- Parameters
+|-----------+------------------------------------------------------------------------------------------------|
+| *Name*    | *Description*                                                                                  |
+|-----------+------------------------------------------------------------------------------------------------|
+| *id*      | Indicates the unique id of the user_document. *Example Value:* 2                               |
+|-----------+------------------------------------------------------------------------------------------------|
+| *name*    | Specifies the name of user_document. *Example Value:*  Attendance Sheet, Feedback Form, Photos |
+|-----------+------------------------------------------------------------------------------------------------|
+| *user_id* | Indicates the id of the user. *Example Value:* {"id" : 1 }                                     |
+|-----------+------------------------------------------------------------------------------------------------|
+| *path*    | Specifies the path of user_document. *Example Value:* /static/uploads/image.jpg                |
+|-----------+------------------------------------------------------------------------------------------------|
+
+- *GET* - 
+ + Example Request
+  #+BEGIN_EXAMPLE
+   /user_documents/1 
+   #+END_EXAMPLE
+
+ + Example Result
+  #+BEGIN_SRC
+{
+  "id": 1, 
+  "name": "photo", 
+  "path": "/static/uploads/blue-2016-03-27-17-15-27.jpg", 
+  "user": {
+    "address": "1-3-176/D", 
+    "city": "Hyd", 
+    "country": "India", 
+    "date_of_birth": "06/02/1991", 
+    "email": "madhavi@vlabs.ac.in", 
+    "id": 1, 
+    "mobile_number": 9866188505, 
+    "name": "madhavi", 
+    "role": {
+      "id": 1, 
+      "name": "Administrator"
+    }, 
+    "zip_code": 500080
+  }
+}
+  #+END_SRC
+
+- *PUT*
+  This *PUT* is valid for fields =name= and =user=. For updating the path or the
+  file, see here. 
+ + Example Request
+   #+BEGIN_SRC
+{
+"path":"blue-2016-03-27-17-09-15.jpg"
+} 
+    #+END_SRC
+
+ + Example Result
+   #+BEGIN_SRC
+{
+  "id": 1, 
+  "name": "photo", 
+  "path": "blue-2016-03-27-17-09-15.jpg", 
+  "user": {
+    "address": "1-3-176/D", 
+    "city": "Hyd", 
+    "country": "India", 
+    "date_of_birth": "06/02/1991", 
+    "email": "madhavi@vlabs.ac.in", 
+    "id": 1, 
+    "mobile_number": 9866188505, 
+    "name": "madhavi", 
+    "role": {
+      "id": 1, 
+      "name": "Administrator"
+    }, 
+    "zip_code": 500080
+  }
+}
+   #+END_SRC
+
+
+- *DELETE*
+ + Example Result
+   #+BEGIN_SRC
+{
+  "id": "1", 
+  "status": "success"
+}
+    #+END_SRC
+
+*** /user_documents?query_param1=val1&query_param2=val2&..query_paramn=valn
+- Parameters
+|-----------+------------------------------------------------------------------------------------------------|
+| *Name*    | *Description*                                                                                  |
+|-----------+------------------------------------------------------------------------------------------------|
+| *id*      | Indicates the unique id of the user_document. *Example Value:* 2                               |
+|-----------+------------------------------------------------------------------------------------------------|
+| *name*    | Specifies the name of user_document. *Example Value:*  Attendance Sheet, Feedback Form, Photos |
+|-----------+------------------------------------------------------------------------------------------------|
+| *user_id* | Indicates the id of the user. *Example Value:* {"id" : 1 }                                     |
+|-----------+------------------------------------------------------------------------------------------------|
+| *path*    | Specifies the path of user_document. *Example Value:* /static/uploads/image.jpg                |
+|-----------+------------------------------------------------------------------------------------------------|
+
+
+- *GET* -
+ + Example Request
+   #+BEGIN_SRC
+   /user_documents?name=photo
+   #+END_SRC
+ 
+ + Example Result
+   #+BEGIN_SRC
+{
+  "id": 1, 
+  "name": "photo", 
+  "path": "blue-2016-03-27-17-09-15.jpg", 
+  "user": {
+    "address": "1-3-176/D", 
+    "city": "Hyd", 
+    "country": "India", 
+    "date_of_birth": "06/02/1991", 
+    "email": "madhavi@vlabs.ac.in", 
+    "id": 1, 
+    "mobile_number": 9866188505, 
+    "name": "madhavi", 
+    "role": {
+      "id": 1, 
+      "name": "Administrator"
+    }, 
+    "zip_code": 500080
+  }
+}
+   #+END_SRC
+
+*** /upload_user_documents/<id>
+
+- *POST* -
+ + Example Request
+   #+BEGIN_SRC
+   /upload_user_documents/1
+   #+END_SRC
+ 
+ + Example Result
+   #+BEGIN_SRC
+/home/ambika/talents-backend/build/code/src/static/uploads/blue-2016-03-27-17-39-20.jpg
+   #+END_SRC
